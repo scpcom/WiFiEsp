@@ -16,11 +16,11 @@ along with The Arduino WiFiEsp library.  If not, see
 <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
-#include "RingBuffer.h"
+#include "EspRingBuffer.h"
 
 #include <Arduino.h>
 
-RingBuffer::RingBuffer(unsigned int size)
+EspRingBuffer::EspRingBuffer(unsigned int size)
 {
 	_size = size;
 	// add one char to terminate the string
@@ -29,20 +29,20 @@ RingBuffer::RingBuffer(unsigned int size)
 	init();
 }
 
-RingBuffer::~RingBuffer() {}
+EspRingBuffer::~EspRingBuffer() {}
 
-void RingBuffer::reset()
+void EspRingBuffer::reset()
 {
 	ringBufP = ringBuf;
 }
 
-void RingBuffer::init()
+void EspRingBuffer::init()
 {
 	ringBufP = ringBuf;
 	memset(ringBuf, 0, _size+1);
 }
 
-void RingBuffer::push(char c)
+void EspRingBuffer::push(char c)
 {
 	*ringBufP = c;
 	ringBufP++;
@@ -52,7 +52,7 @@ void RingBuffer::push(char c)
 
 
 
-bool RingBuffer::endsWith(const char* str)
+bool EspRingBuffer::endsWith(const char* str)
 {
 	int findStrLen = strlen(str);
 
@@ -79,7 +79,7 @@ bool RingBuffer::endsWith(const char* str)
 
 
 
-void RingBuffer::getStr(char * destination, unsigned int skipChars)
+void EspRingBuffer::getStr(char * destination, unsigned int skipChars)
 {
 	int len = ringBufP-ringBuf-skipChars;
 
@@ -90,7 +90,7 @@ void RingBuffer::getStr(char * destination, unsigned int skipChars)
 	//destination[len]=0;
 }
 
-void RingBuffer::getStrN(char * destination, unsigned int skipChars, unsigned int num)
+void EspRingBuffer::getStrN(char * destination, unsigned int skipChars, unsigned int num)
 {
 	int len = ringBufP-ringBuf-skipChars;
 

@@ -16,15 +16,15 @@ along with The Arduino WiFiEsp library.  If not, see
 <http://www.gnu.org/licenses/>.
 --------------------------------------------------------------------*/
 
-#ifndef RingBuffer_h
-#define RingBuffer_h
+#ifndef EspRingBuffer_h
+#define EspRingBuffer_h
 
 
-class RingBuffer
+class EspRingBuffer
 {
 public:
-	RingBuffer(unsigned int size);
-	~RingBuffer();
+	EspRingBuffer(unsigned int size);
+	~EspRingBuffer();
 
 	void reset();
 	void init();

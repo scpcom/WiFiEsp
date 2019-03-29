@@ -18,6 +18,9 @@ along with The Arduino WiFiEsp library.  If not, see
 
 #include <Arduino.h>
 #include <avr/pgmspace.h>
+#include <stddef.h>
+#include<stdarg.h>
+#include<stdio.h>
 
 #include "utility/EspDrv.h"
 #include "utility/debug.h"
@@ -46,7 +49,7 @@ typedef enum
 
 Stream *EspDrv::espSerial;
 
-RingBuffer EspDrv::ringBuf(32);
+EspRingBuffer EspDrv::ringBuf(32);
 
 // Array of data to cache the information related to the networks discovered
 char 	EspDrv::_networkSsid[][WL_SSID_MAX_LENGTH] = {{"1"},{"2"},{"3"},{"4"},{"5"}};
@@ -797,7 +800,7 @@ bool EspDrv::sendData(uint8_t sock, const uint8_t *data, uint16_t len)
 {
 	LOGDEBUG2(F("> sendData:"), sock, len);
 
-	char cmdBuf[20];
+	char cmdBuf[30];
 	sprintf_P(cmdBuf, PSTR("AT+CIPSEND=%d,%u"), sock, len);
 	espSerial->println(cmdBuf);
 
@@ -825,7 +828,7 @@ bool EspDrv::sendData(uint8_t sock, const __FlashStringHelper *data, uint16_t le
 {
 	LOGDEBUG2(F("> sendData:"), sock, len);
 
-	char cmdBuf[20];
+	char cmdBuf[30];
 	uint16_t len2 = len + 2*appendCrLf;
 	sprintf_P(cmdBuf, PSTR("AT+CIPSEND=%d,%u"), sock, len2);
 	espSerial->println(cmdBuf);
