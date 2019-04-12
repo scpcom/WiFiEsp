@@ -32,7 +32,7 @@ void setup()
 {
   pinMode(LED_BUILTIN, OUTPUT);	// initialize digital pin LED_BUILTIN as an output.
   Serial.begin(115200);   // initialize serial for debugging
-  Serial1.begin(9600);    // initialize serial for ESP module
+  Serial1.begin(115200);    // initialize serial for ESP module
   WiFi.init(&Serial1);    // initialize ESP module
 
   // check for the presence of the shield

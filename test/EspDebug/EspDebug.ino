@@ -11,7 +11,7 @@ SoftwareSerial Serial1(6, 7); // RX, TX
 void setup()
 {
   Serial.begin(115200); // serial port used for debugging
-  Serial1.begin(9600);  // your ESP's baud rate might be different
+  Serial1.begin(115200);  // your ESP's baud rate might be different
 }
  
 void loop()

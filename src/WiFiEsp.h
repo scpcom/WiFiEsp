@@ -31,6 +31,7 @@ along with The Arduino WiFiEsp library.  If not, see
 #include "utility/EspRingBuffer.h"
 #include "utility/debug.h"
 
+#define HAVE_HWSERIAL1
 
 class WiFiEspClass
 {

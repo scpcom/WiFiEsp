@@ -45,7 +45,7 @@ void setup()
   // initialize serial for debugging
   Serial.begin(115200);
   // initialize serial for ESP module
-  Serial1.begin(9600);
+  Serial1.begin(115200);
   // initialize ESP module
   WiFi.init(&Serial1);
 
