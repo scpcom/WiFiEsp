@@ -63,6 +63,7 @@ uint8_t EspDrv::_mac[] = {0};
 uint8_t EspDrv::_localIp[] = {0};
 char EspDrv::fwVersion[] = {0};
 
+bool EspDrv::_curMode=1;
 long EspDrv::_bufPos=0;
 uint8_t EspDrv::_connId=0;
 
@@ -154,8 +155,14 @@ bool EspDrv::wifiConnect(const char* ssid, const char* passphrase)
 	// Escape character syntax is needed if "SSID" or "password" contains
 	// any special characters (',', '"' and '/')
 
-    // connect to access point, use CUR mode to avoid connection at boot
+	// connect to access point, use CUR mode to avoid connection at boot
 	int ret = sendCmd(F("AT+CWJAP_CUR=\"%s\",\"%s\""), 20000, ssid, passphrase);
+	_curMode = 1;
+	// ESP-01 does not support AT+CWJAP_CUR, fallback to AT+CWJAP
+	if (ret!=TAG_OK) {
+		ret = sendCmd(F("AT+CWJAP=\"%s\",\"%s\""), 20000, ssid, passphrase);
+		_curMode = 0;
+	}
 
 	if (ret==TAG_OK)
 	{
@@ -178,7 +185,15 @@ bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uin
 	LOGDEBUG(F("> wifiStartAP"));
 
 	// set AP mode, use CUR mode to avoid automatic start at boot
-    int ret = sendCmd(F("AT+CWMODE_CUR=%d"), 10000, espMode);
+	int ret = sendCmd(F("AT+CWMODE_CUR=%d"), 10000, espMode);
+	_curMode = 1;
+	// ESP-01 does not support AT+CWMODE_CUR, fallback to AT+CWMODE
+	if (ret!=TAG_OK)
+	{
+		ret = sendCmd(F("AT+CWMODE=%d"), 10000, espMode);
+		_curMode = 0;
+	}
+
 	if (ret!=TAG_OK)
 	{
 		LOGWARN1(F("Failed to set AP mode"), ssid);
@@ -190,7 +205,10 @@ bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uin
 	// any special characters (',', '"' and '/')
 
 	// start access point
-	ret = sendCmd(F("AT+CWSAP_CUR=\"%s\",\"%s\",%d,%d"), 10000, ssid, pwd, channel, enc);
+	if (_curMode)
+		ret = sendCmd(F("AT+CWSAP_CUR=\"%s\",\"%s\",%d,%d"), 10000, ssid, pwd, channel, enc);
+	else
+		ret = sendCmd(F("AT+CWSAP=\"%s\",\"%s\",%d,%d"), 10000, ssid, pwd, channel, enc);
 
 	if (ret!=TAG_OK)
 	{
@@ -198,10 +216,20 @@ bool EspDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, uin
 		return false;
 	}
 	
-	if (espMode==2)
-		sendCmd(F("AT+CWDHCP_CUR=0,1"));    // enable DHCP for AP mode
-	if (espMode==3)
-		sendCmd(F("AT+CWDHCP_CUR=2,1"));    // enable DHCP for station and AP mode
+	if (_curMode)
+	{
+		if (espMode==2)
+			sendCmd(F("AT+CWDHCP_CUR=0,1"));    // enable DHCP for AP mode
+		if (espMode==3)
+			sendCmd(F("AT+CWDHCP_CUR=2,1"));    // enable DHCP for station and AP mode
+	}
+	else
+	{
+		if (espMode==2)
+			sendCmd(F("AT+CWDHCP=0,1"));    // enable DHCP for AP mode
+		if (espMode==3)
+			sendCmd(F("AT+CWDHCP=2,1"));    // enable DHCP for station and AP mode
+	}
 
 	LOGINFO1(F("Access point started"), ssid);
 	return true;
@@ -224,10 +252,15 @@ int8_t EspDrv::disconnect()
 
 void EspDrv::config(IPAddress ip)
 {
+	int ret;
+
 	LOGDEBUG(F("> config"));
 
 	// disable station DHCP
-	sendCmd(F("AT+CWDHCP_CUR=1,0"));
+	if (_curMode)
+		sendCmd(F("AT+CWDHCP_CUR=1,0"));
+	else
+		sendCmd(F("AT+CWDHCP=1,0"));
 	
 	// it seems we need to wait here...
 	delay(500);
@@ -235,7 +268,10 @@ void EspDrv::config(IPAddress ip)
 	char buf[16];
 	sprintf_P(buf, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 
-	int ret = sendCmd(F("AT+CIPSTA_CUR=\"%s\""), 2000, buf);
+	if (_curMode)
+		ret = sendCmd(F("AT+CIPSTA_CUR=\"%s\""), 2000, buf);
+	else
+		ret = sendCmd(F("AT+CIPSTA=\"%s\""), 2000, buf);
 	delay(500);
 
 	if (ret==TAG_OK)
@@ -246,12 +282,23 @@ void EspDrv::config(IPAddress ip)
 
 void EspDrv::configAP(IPAddress ip)
 {
+	int ret;
+
 	LOGDEBUG(F("> config"));
 	
-    sendCmd(F("AT+CWMODE_CUR=2"));
+	if (_curMode) {
+		sendCmd(F("AT+CWMODE_CUR=2"));
 	
-	// disable station DHCP
-	sendCmd(F("AT+CWDHCP_CUR=2,0"));
+		// disable station DHCP
+		sendCmd(F("AT+CWDHCP_CUR=2,0"));
+	}
+	else
+	{
+		sendCmd(F("AT+CWMODE=2"));
+
+		// disable station DHCP
+	        sendCmd(F("AT+CWDHCP=2,0"));
+	}
 	
 	// it seems we need to wait here...
 	delay(500);
@@ -259,7 +306,10 @@ void EspDrv::configAP(IPAddress ip)
 	char buf[16];
 	sprintf_P(buf, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 
-	int ret = sendCmd(F("AT+CIPAP_CUR=\"%s\""), 2000, buf);
+	if (_curMode)
+		ret = sendCmd(F("AT+CIPAP_CUR=\"%s\""), 2000, buf);
+	else
+		ret = sendCmd(F("AT+CIPAP=\"%s\""), 2000, buf);
 	delay(500);
 
 	if (ret==TAG_OK)
@@ -300,10 +350,13 @@ uint8_t EspDrv::getConnectionStatus()
 	if(!sendCmdGet(F("AT+CIPSTATUS"), F("STATUS:"), F("\r\n"), buf, sizeof(buf)))
 		return WL_NO_SHIELD;
 
+	// 1: on ESP-01 this command returns STATUS:1 instead (no extra info, but status changes)
+	// 2: got IP
+	// 3: client connected
 	// 4: client disconnected
 	// 5: wifi disconnected
 	int s = atoi(buf);
-	if(s==2 or s==3 or s==4)
+	if(s==1 or s==2 or s==3 or s==4)
 		return WL_CONNECTED;
 	else if(s==5)
 		return WL_DISCONNECTED;

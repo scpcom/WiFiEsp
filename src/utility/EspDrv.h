@@ -288,6 +288,7 @@ public:
 private:
 	static Stream *espSerial;
 
+	static bool _curMode;
 	static long _bufPos;
 	static uint8_t _connId;
 
