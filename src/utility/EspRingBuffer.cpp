@@ -81,7 +81,10 @@ bool EspRingBuffer::endsWith(const char* str)
 
 void EspRingBuffer::getStr(char * destination, unsigned int skipChars)
 {
-	int len = ringBufP-ringBuf-skipChars;
+	unsigned int len = ringBufP-ringBuf;
+
+	if (len>=skipChars)
+                len=len-skipChars;
 
 	// copy buffer to destination string
 	strncpy(destination, ringBuf, len);
@@ -92,8 +95,10 @@ void EspRingBuffer::getStr(char * destination, unsigned int skipChars)
 
 void EspRingBuffer::getStrN(char * destination, unsigned int skipChars, unsigned int num)
 {
-	int len = ringBufP-ringBuf-skipChars;
+	unsigned int len = ringBufP-ringBuf;
 
+	if (len>=skipChars)
+		len=len-skipChars;
 	if (len>num)
 		len=num;
 
