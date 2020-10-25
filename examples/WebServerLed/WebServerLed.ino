@@ -42,6 +42,10 @@ void setup()
     while (true);
   }
 
+  WiFi.disconnect();
+
+  WiFi.reset();
+
   // attempt to connect to WiFi network
   while (status != WL_CONNECTED) {
     Serial.print("Attempting to connect to WPA SSID: ");
