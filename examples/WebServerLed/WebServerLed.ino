@@ -67,7 +67,6 @@ void loop()
   WiFiEspClient client = server.available();  // listen for incoming clients
 
   if (client) {                               // if you get a client,
-    Serial.println("New client");             // print a message out the serial port
     buf.init();                               // initialize the circular buffer
     while (client.connected()) {              // loop while the client's connected
       if (client.available()) {               // if there's bytes to read from the client,
