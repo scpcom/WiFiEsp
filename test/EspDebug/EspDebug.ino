@@ -1,6 +1,6 @@
 // EspDebug - Test sketch for ESP8266 module
 
-#include "Arduino.h"
+#include "WiFiEsp.h"
 
 // Emulate Serial1 on pins 7/6 if not present
 #ifndef HAVE_HWSERIAL1
