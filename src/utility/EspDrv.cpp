@@ -1152,6 +1152,7 @@ void EspDrv::espEmptyBuf(bool warn)
 		c = espSerial->read();
 		if (i>0 and warn==true)
 			LOGDEBUG0(c);
+		(void)c;
 		i++;
 	}
 	if (i>0 and warn==true)
