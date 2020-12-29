@@ -34,21 +34,21 @@ WiFiEspClass::WiFiEspClass()
 void WiFiEspClass::init(Stream* espSerial)
 {
     LOGINFO(F("Initializing ESP module"));
-	EspDrv::wifiDriverInit(espSerial);
+	WIFIDRV::wifiDriverInit(espSerial);
 }
 
 
 
 char* WiFiEspClass::firmwareVersion()
 {
-	return EspDrv::getFwVersion();
+	return WIFIDRV::getFwVersion();
 }
 
 
 int WiFiEspClass::begin(const char* ssid, const char* passphrase)
 {
     espMode = 1;
-	if (EspDrv::wifiConnect(ssid, passphrase))
+	if (WIFIDRV::wifiConnect(ssid, passphrase))
 		return WL_CONNECTED;
 
 	return WL_CONNECT_FAILED;
@@ -62,7 +62,7 @@ int WiFiEspClass::beginAP(const char* ssid, uint8_t channel, const char* pwd, ui
     else
         espMode = 3;
     
-    if (EspDrv::wifiStartAP(ssid, pwd, channel, enc, espMode))
+    if (WIFIDRV::wifiStartAP(ssid, pwd, channel, enc, espMode))
 		return WL_CONNECTED;
 
 	return WL_CONNECT_FAILED;
@@ -81,25 +81,25 @@ int WiFiEspClass::beginAP(const char* ssid, uint8_t channel)
 
 void WiFiEspClass::config(IPAddress ip)
 {
-	EspDrv::config(ip);
+	WIFIDRV::config(ip);
 }
 
 void WiFiEspClass::configAP(IPAddress ip)
 {
-	EspDrv::configAP(ip);
+	WIFIDRV::configAP(ip);
 }
 
 
 
 int WiFiEspClass::disconnect()
 {
-    return EspDrv::disconnect();
+    return WIFIDRV::disconnect();
 }
 
 uint8_t* WiFiEspClass::macAddress(uint8_t* mac)
 {
 	// TODO we don't need _mac variable
-	uint8_t* _mac = EspDrv::getMacAddress();
+	uint8_t* _mac = WIFIDRV::getMacAddress();
 	memcpy(mac, _mac, WL_MAC_ADDR_LENGTH);
     return mac;
 }
@@ -108,9 +108,9 @@ IPAddress WiFiEspClass::localIP()
 {
 	IPAddress ret;
 	if(espMode==1)
-		EspDrv::getIpAddress(ret);
+		WIFIDRV::getIpAddress(ret);
 	else
-		EspDrv::getIpAddressAP(ret);
+		WIFIDRV::getIpAddressAP(ret);
 	return ret;
 }
 
@@ -118,7 +118,7 @@ IPAddress WiFiEspClass::subnetMask()
 {
 	IPAddress mask;
 	if(espMode==1)
-    EspDrv::getNetmask(mask);
+    WIFIDRV::getNetmask(mask);
 	return mask;
 }
 
@@ -126,54 +126,54 @@ IPAddress WiFiEspClass::gatewayIP()
 {
 	IPAddress gw;
 	if(espMode==1)
-		EspDrv::getGateway(gw);
+		WIFIDRV::getGateway(gw);
 	return gw;
 }
 
 
 char* WiFiEspClass::SSID()
 {
-    return EspDrv::getCurrentSSID();
+    return WIFIDRV::getCurrentSSID();
 }
 
 uint8_t* WiFiEspClass::BSSID(uint8_t* bssid)
 {
 	// TODO we don't need _bssid
-	uint8_t* _bssid = EspDrv::getCurrentBSSID();
+	uint8_t* _bssid = WIFIDRV::getCurrentBSSID();
 	memcpy(bssid, _bssid, WL_MAC_ADDR_LENGTH);
     return bssid;
 }
 
 int32_t WiFiEspClass::RSSI()
 {
-    return EspDrv::getCurrentRSSI();
+    return WIFIDRV::getCurrentRSSI();
 }
 
 
 int8_t WiFiEspClass::scanNetworks()
 {
-	return EspDrv::getScanNetworks();
+	return WIFIDRV::getScanNetworks();
 }
 
 char* WiFiEspClass::SSID(uint8_t networkItem)
 {
-	return EspDrv::getSSIDNetoworks(networkItem);
+	return WIFIDRV::getSSIDNetoworks(networkItem);
 }
 
 int32_t WiFiEspClass::RSSI(uint8_t networkItem)
 {
-	return EspDrv::getRSSINetoworks(networkItem);
+	return WIFIDRV::getRSSINetoworks(networkItem);
 }
 
 uint8_t WiFiEspClass::encryptionType(uint8_t networkItem)
 {
-    return EspDrv::getEncTypeNetowrks(networkItem);
+    return WIFIDRV::getEncTypeNetowrks(networkItem);
 }
 
 
 uint8_t WiFiEspClass::status()
 {
-	return EspDrv::getConnectionStatus();
+	return WIFIDRV::getConnectionStatus();
 }
 
 
@@ -184,7 +184,7 @@ uint8_t WiFiEspClass::status()
 
 void WiFiEspClass::reset(void)
 {
-	EspDrv::reset();
+	WIFIDRV::reset();
 }
 
 
@@ -203,7 +203,7 @@ delay(ESP8266_HARD_RESET_DURATION);
 
 bool WiFiEspClass::ping(const char *host)
 {
-	return EspDrv::ping(host);
+	return WIFIDRV::ping(host);
 }
 
 uint8_t WiFiEspClass::getFreeSocket()

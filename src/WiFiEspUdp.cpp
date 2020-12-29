@@ -19,7 +19,7 @@ along with The Arduino WiFiEsp library.  If not, see
 #include "WiFiEsp.h"
 #include "WiFiEspUdp.h"
 
-#include "utility/EspDrv.h"
+#include "utility/WiFiEspDrv.h"
 #include "utility/debug.h"
 
 /* Constructor */
@@ -35,7 +35,7 @@ uint8_t WiFiEspUDP::begin(uint16_t port)
     uint8_t sock = WiFiEspClass::getFreeSocket();
     if (sock != NO_SOCKET_AVAIL)
     {
-        EspDrv::startClient("0", port, sock, UDP_MODE);
+        WIFIDRV::startClient("0", port, sock, UDP_MODE);
 		
         WiFiEspClass::allocateSocket(sock);  // allocating the socket for the listener
         WiFiEspClass::_server_port[sock] = port;
@@ -54,7 +54,7 @@ int WiFiEspUDP::available()
 {
 	 if (_sock != NO_SOCKET_AVAIL)
 	 {
-		int bytes = EspDrv::availData(_sock);
+		int bytes = WIFIDRV::availData(_sock);
 		if (bytes>0)
 		{
 			return bytes;
@@ -74,7 +74,7 @@ void WiFiEspUDP::stop()
       flush();
       
       // Stop the listener and return the socket to the pool
-	  EspDrv::stopClient(_sock);
+	  WIFIDRV::stopClient(_sock);
       WiFiEspClass::_state[_sock] = NA_STATE;
       WiFiEspClass::_server_port[_sock] = 0;
 
@@ -87,7 +87,7 @@ int WiFiEspUDP::beginPacket(const char *host, uint16_t port)
 	  _sock = WiFiEspClass::getFreeSocket();
   if (_sock != NO_SOCKET_AVAIL)
   {
-	  //EspDrv::startClient(host, port, _sock, UDP_MODE);
+	  //WIFIDRV::startClient(host, port, _sock, UDP_MODE);
 	  _remotePort = port;
 	  strcpy(_remoteHost, host);
 	  WiFiEspClass::allocateSocket(_sock);
@@ -118,7 +118,7 @@ size_t WiFiEspUDP::write(uint8_t byte)
 
 size_t WiFiEspUDP::write(const uint8_t *buffer, size_t size)
 {
-	bool r = EspDrv::sendDataUdp(_sock, _remoteHost, _remotePort, buffer, size);
+	bool r = WIFIDRV::sendDataUdp(_sock, _remoteHost, _remotePort, buffer, size);
 	if (!r)
 	{
 		return 0;
@@ -141,7 +141,7 @@ int WiFiEspUDP::read()
 	bool connClose = false;
 	
     // Read the data and handle the timeout condition
-	if (! EspDrv::getData(_sock, &b, false, &connClose))
+	if (! WIFIDRV::getData(_sock, &b, false, &connClose))
       return -1;  // Timeout occured
 
 	return b;
@@ -151,7 +151,7 @@ int WiFiEspUDP::read(uint8_t* buf, size_t size)
 {
 	if (!available())
 		return -1;
-	return EspDrv::getDataBuf(_sock, buf, size);
+	return WIFIDRV::getDataBuf(_sock, buf, size);
 }
 
 int WiFiEspUDP::peek()
@@ -175,13 +175,13 @@ void WiFiEspUDP::flush()
 IPAddress  WiFiEspUDP::remoteIP()
 {
 	IPAddress ret;
-	EspDrv::getRemoteIpAddress(ret);
+	WIFIDRV::getRemoteIpAddress(ret);
 	return ret;
 }
 
 uint16_t  WiFiEspUDP::remotePort()
 {
-	return EspDrv::getRemotePort();
+	return WIFIDRV::getRemotePort();
 }
 
 

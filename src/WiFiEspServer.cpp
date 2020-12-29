@@ -18,7 +18,7 @@ along with The Arduino WiFiEsp library.  If not, see
 
 #include "WiFiEspServer.h"
 
-#include "utility/EspDrv.h"
+#include "utility/WiFiEspDrv.h"
 #include "utility/debug.h"
 
 
@@ -45,7 +45,7 @@ void WiFiEspServer::begin()
 #endif
 	WiFiEspClass::allocateSocket(_sock);
 
-	_started = EspDrv::startServer(_port, _sock);
+	_started = WIFIDRV::startServer(_port, _sock);
 
 	if (_started)
 	{
@@ -61,12 +61,12 @@ WiFiEspClient WiFiEspServer::available(byte* status)
 {
 	// TODO the original method seems to handle automatic server restart
 
-	int bytes = EspDrv::availData(0);
+	int bytes = WIFIDRV::availData(0);
 	if (bytes>0)
 	{
-		LOGINFO1(F("New client"), EspDrv::_connId);
-		WiFiEspClass::allocateSocket(EspDrv::_connId);
-		WiFiEspClient client(EspDrv::_connId);
+		LOGINFO1(F("New client"), WIFIDRV::_connId);
+		WiFiEspClass::allocateSocket(WIFIDRV::_connId);
+		WiFiEspClient client(WIFIDRV::_connId);
 		return client;
 	}
 
@@ -75,7 +75,7 @@ WiFiEspClient WiFiEspServer::available(byte* status)
 
 uint8_t WiFiEspServer::status()
 {
-    return EspDrv::getServerState(0);
+    return WIFIDRV::getServerState(0);
 }
 
 size_t WiFiEspServer::write(uint8_t b)

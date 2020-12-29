@@ -22,7 +22,7 @@ along with The Arduino WiFiEsp library.  If not, see
 #include "WiFiEspClient.h"
 #include "WiFiEspServer.h"
 
-#include "utility/EspDrv.h"
+#include "utility/WiFiEspDrv.h"
 #include "utility/debug.h"
 
 
@@ -92,7 +92,7 @@ int WiFiEspClient::connect(const char* host, uint16_t port, uint8_t protMode)
 
     if (_sock != NO_SOCKET_AVAIL)
     {
-    	if (!EspDrv::startClient(host, port, _sock, protMode))
+    	if (!WIFIDRV::startClient(host, port, _sock, protMode))
 			return 0;
 
     	WiFiEspClass::allocateSocket(_sock);
@@ -120,7 +120,7 @@ size_t WiFiEspClient::write(const uint8_t *buf, size_t size)
 		return 0;
 	}
 
-	bool r = EspDrv::sendData(_sock, buf, size);
+	bool r = WIFIDRV::sendData(_sock, buf, size);
 	if (!r)
 	{
 		setWriteError();
@@ -139,7 +139,7 @@ int WiFiEspClient::available()
 {
 	if (_sock != 255)
 	{
-		int bytes = EspDrv::availData(_sock);
+		int bytes = WIFIDRV::availData(_sock);
 		if (bytes>0)
 		{
 			return bytes;
@@ -156,7 +156,7 @@ int WiFiEspClient::read()
 		return -1;
 
 	bool connClose = false;
-	EspDrv::getData(_sock, &b, false, &connClose);
+	WIFIDRV::getData(_sock, &b, false, &connClose);
 
 	if (connClose)
 	{
@@ -171,7 +171,7 @@ int WiFiEspClient::read(uint8_t* buf, size_t size)
 {
 	if (!available())
 		return -1;
-	return EspDrv::getDataBuf(_sock, buf, size);
+	return WIFIDRV::getDataBuf(_sock, buf, size);
 }
 
 int WiFiEspClient::peek()
@@ -181,7 +181,7 @@ int WiFiEspClient::peek()
 		return -1;
 
 	bool connClose = false;
-	EspDrv::getData(_sock, &b, true, &connClose);
+	WIFIDRV::getData(_sock, &b, true, &connClose);
 
 	if (connClose)
 	{
@@ -208,7 +208,7 @@ void WiFiEspClient::stop()
 
 	LOGINFO1(F("Disconnecting "), _sock);
 
-	EspDrv::stopClient(_sock);
+	WIFIDRV::stopClient(_sock);
 
 	WiFiEspClass::releaseSocket(_sock);
 	_sock = 255;
@@ -239,12 +239,12 @@ uint8_t WiFiEspClient::status()
 		return CLOSED;
 	}
 
-	if (EspDrv::availData(_sock))
+	if (WIFIDRV::availData(_sock))
 	{
 		return ESTABLISHED;
 	}
 
-	if (EspDrv::getClientState(_sock))
+	if (WIFIDRV::getClientState(_sock))
 	{
 		return ESTABLISHED;
 	}
@@ -258,7 +258,7 @@ uint8_t WiFiEspClient::status()
 IPAddress WiFiEspClient::remoteIP()
 {
 	IPAddress ret;
-	EspDrv::getRemoteIpAddress(ret);
+	WIFIDRV::getRemoteIpAddress(ret);
 	return ret;
 }
 
@@ -276,7 +276,7 @@ size_t WiFiEspClient::printFSH(const __FlashStringHelper *ifsh, bool appendCrLf)
 		return 0;
 	}
 
-	bool r = EspDrv::sendData(_sock, ifsh, size, appendCrLf);
+	bool r = WIFIDRV::sendData(_sock, ifsh, size, appendCrLf);
 	if (!r)
 	{
 		setWriteError();
