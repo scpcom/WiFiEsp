@@ -11,8 +11,8 @@
 
 
 // Cached values of retrieved data
-char ssid[32] = {0};
-uint8_t mac[32] = {0};
+char esp32_spi_ssid[32] = {0};
+uint8_t esp32_spi_mac[32] = {0};
 esp32_spi_net_t net_dat;
 uint8_t cs_num, rst_num, rdy_num, is_hard_spi;
 
@@ -36,7 +36,6 @@ void esp32_spi_init(uint8_t t_cs_num, uint8_t t_rst_num, uint8_t t_rdy_num, uint
 
     if ((int8_t)rst_num > 0)
     {
-        rst_num -= FUNC_GPIOHS0;
         gpiohs_set_drive_mode(rst_num, GPIO_DM_OUTPUT); //reset
     }
 
@@ -587,10 +586,10 @@ uint8_t *esp32_spi_MAC_address(void)
     }
 
     uint8_t ret_len = resp->params[0]->param_len;
-    memcpy(mac, resp->params[0]->param, ret_len);
+    memcpy(esp32_spi_mac, resp->params[0]->param, ret_len);
 
     resp->del(resp);
-    return mac;
+    return esp32_spi_mac;
 }
 
 /*
@@ -824,10 +823,10 @@ char *esp32_spi_get_ssid(void)
 #endif
 
     int8_t ret_len = resp->params[0]->param_len;
-    memcpy(ssid, resp->params[0]->param, ret_len);
+    memcpy(esp32_spi_ssid, resp->params[0]->param, ret_len);
 
     resp->del(resp);
-    return ssid;
+    return esp32_spi_ssid;
 }
 
 /*
