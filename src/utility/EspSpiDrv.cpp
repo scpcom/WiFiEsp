@@ -511,8 +511,11 @@ bool EspSpiDrv::ping(const char *host)
 
 	int ret = esp32_spi_ping((uint8_t *)host, 1, 100);
 	
-	if (ret==0)
+	if (ret>=0) {
 		return true;
+	}
+
+	LOGWARN1(F("ping failed"), ret);
 
 	return false;
 }
