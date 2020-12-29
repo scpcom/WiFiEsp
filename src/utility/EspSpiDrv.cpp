@@ -372,28 +372,8 @@ uint8_t* EspSpiDrv::getCurrentBSSID()
 	LOGDEBUG(F("> getCurrentBSSID"));
 
 	memset(_bssid, 0, WL_MAC_ADDR_LENGTH);
+	memcpy(_bssid, esp32_spi_get_bssid(), WL_MAC_ADDR_LENGTH);
 
-	// TODO
-#if 0
-	char buf[20];
-	if (sendCmdGet(F("AT+CWJAP?"), F(",\""), F("\","), buf, sizeof(buf)))
-	{
-		char* token;
-
-		token = strtok(buf, ":");
-		_bssid[5] = (byte)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");
-		_bssid[4] = (byte)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");
-		_bssid[3] = (byte)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");
-		_bssid[2] = (byte)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");
-		_bssid[1] = (byte)strtol(token, NULL, 16);
-		token = strtok(NULL, ":");
-		_bssid[0] = (byte)strtol(token, NULL, 16);
-	}
-#endif
 	return _bssid;
 
 }

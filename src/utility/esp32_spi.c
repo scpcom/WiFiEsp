@@ -12,6 +12,7 @@
 
 // Cached values of retrieved data
 char esp32_spi_ssid[32] = {0};
+char esp32_spi_bssid[32] = {0};
 uint8_t esp32_spi_mac[32] = {0};
 esp32_spi_net_t net_dat;
 uint8_t cs_num, rst_num, rdy_num, is_hard_spi;
@@ -827,6 +828,41 @@ char *esp32_spi_get_ssid(void)
 
     resp->del(resp);
     return esp32_spi_ssid;
+}
+
+/*
+The mac of the access point we're connected to
+NULL error
+other ok
+*/
+char *esp32_spi_get_bssid(void)
+{
+
+    uint8_t data = 0xff;
+
+    esp32_spi_params_t *send = esp32_spi_params_alloc_1param(1, &data);
+
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(GET_CURR_BSSID_CMD, send, NULL, 0, 0);
+
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return NULL;
+    }
+
+#if (ESP32_SPI_DEBUG >= 2)
+    printk("connect bssid:%s\r\n", resp->params[0]->param);
+#endif
+
+    int8_t ret_len = resp->params[0]->param_len;
+    memcpy(esp32_spi_bssid, resp->params[0]->param, ret_len);
+
+    resp->del(resp);
+    return esp32_spi_bssid;
 }
 
 /*
