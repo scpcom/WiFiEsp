@@ -87,33 +87,6 @@ void EspSpiDrv::reset()
 
 	// TODO
 	//esp32_spi_reset();
-
-#if 0
-	sendCmd(F("AT+RST"));
-	delay(3000);
-	espEmptyBuf(false);  // empty dirty characters from the buffer
-
-	// disable echo of commands
-	sendCmd(F("ATE0"));
-
-	// set station mode
-	sendCmd(F("AT+CWMODE=1"));
-	delay(200);
-
-	// set multiple connections mode
-	sendCmd(F("AT+CIPMUX=1"));
-
-	// Show remote IP and port with "+IPD"
-	sendCmd(F("AT+CIPDINFO=1"));
-	
-	// Disable autoconnect
-	// Automatic connection can create problems during initialization phase at next boot
-	sendCmd(F("AT+CWAUTOCONN=0"));
-
-	// enable DHCP
-	sendCmd(F("AT+CWDHCP=1,1"));
-	delay(200);
-#endif
 }
 
 
@@ -178,14 +151,6 @@ void EspSpiDrv::config(IPAddress ip)
 {
 	LOGDEBUG(F("> config"));
 
-#if 0
-	// disable station DHCP
-	sendCmd(F("AT+CWDHCP_CUR=1,0"));
-	
-	// it seems we need to wait here...
-	delay(500);
-#endif
-	
 	char buf[16];
 	sprintf_P(buf, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 
@@ -203,27 +168,7 @@ void EspSpiDrv::configAP(IPAddress ip)
 {
 	LOGDEBUG(F("> config"));
 	
-	// TODO
-#if 0
-    sendCmd(F("AT+CWMODE_CUR=2"));
-	
-	// disable station DHCP
-	sendCmd(F("AT+CWDHCP_CUR=2,0"));
-	
-	// it seems we need to wait here...
-	delay(500);
-	
-	char buf[16];
-	sprintf_P(buf, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
-
-	int ret = sendCmd(F("AT+CIPAP_CUR=\"%s\""), 2000, buf);
-	delay(500);
-
-	if (ret==TAG_OK)
-	{
-		LOGINFO1(F("IP address set"), buf);
-	}
-#endif
+	config(ip);
 }
 
 uint8_t EspSpiDrv::getConnectionStatus()
@@ -310,26 +255,7 @@ void EspSpiDrv::getIpAddressAP(IPAddress& ip)
 {
 	LOGDEBUG(F("> getIpAddressAP"));
 
-	// TODO
-#if 0
-	char buf[20];
-	memset(buf, '\0', sizeof(buf));
-	if (sendCmdGet(F("AT+CIPAP?"), F("+CIPAP:ip:\""), F("\""), buf, sizeof(buf)))
-	{
-		char* token;
-
-		token = strtok(buf, ".");
-		_localIp[0] = atoi(token);
-		token = strtok(NULL, ".");
-		_localIp[1] = atoi(token);
-		token = strtok(NULL, ".");
-		_localIp[2] = atoi(token);
-		token = strtok(NULL, ".");
-		_localIp[3] = atoi(token);
-
-		ip = _localIp;
-	}
-#endif
+	getIpAddress(ip);
 }
 
 
