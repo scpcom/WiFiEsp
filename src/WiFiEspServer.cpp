@@ -60,7 +60,7 @@ void WiFiEspServer::begin()
 
 WiFiEspClient WiFiEspServer::available(byte* status)
 {
-#ifndef WIFI_ESP32_SPI
+#ifdef WIFI_ESP_AT
 	// TODO the original method seems to handle automatic server restart
 
 	int bytes = WIFIDRV::availData(0);
