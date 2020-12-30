@@ -177,6 +177,8 @@ uint8_t esp32_spi_is_connected(void);
 void esp32_spi_connect(uint8_t *secrets);
 int8_t esp32_spi_connect_AP(uint8_t *ssid, uint8_t *password, uint8_t retry_times);
 int8_t esp32_spi_disconnect_from_AP(void);
+int8_t esp32_spi_wifi_set_ap_network(uint8_t *ssid, uint8_t channel);
+int8_t esp32_spi_wifi_set_ap_passphrase(uint8_t *ssid, uint8_t *passphrase, uint8_t channel);
 void esp32_spi_pretty_ip(uint8_t *ip, uint8_t *str_ip);
 int esp32_spi_get_host_by_name(uint8_t *hostname, uint8_t *ip);
 int32_t esp32_spi_ping(uint8_t *dest, uint8_t dest_type, uint8_t ttl);

@@ -563,6 +563,34 @@ static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t
     return ret;
 }
 
+// make params struct with three param
+static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2)
+{
+    esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
+
+    ret->del = delete_esp32_spi_params;
+
+    ret->params_num = 3;
+    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    //
+    ret->params[0] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[0]->param_len = len_0;
+    ret->params[0]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_0);
+    memcpy(ret->params[0]->param, buf_0, len_0);
+    //
+    ret->params[1] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[1]->param_len = len_1;
+    ret->params[1]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_1);
+    memcpy(ret->params[1]->param, buf_1, len_1);
+    //
+    ret->params[2] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[2]->param_len = len_2;
+    ret->params[2]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_2);
+    memcpy(ret->params[2]->param, buf_2, len_2);
+
+    return ret;
+}
+
 /// A bytearray containing the MAC address of the ESP32
 //NULL error
 //other ok
@@ -1049,6 +1077,71 @@ int8_t esp32_spi_disconnect_from_AP(void)
     int8_t ret = (int8_t)resp->params[0]->param[0];
     resp->del(resp);
     return ret;
+}
+
+/**
+ Tells the ESP32 to set its own access point to the given ssid
+ -1 error
+  0 ok
+ */
+int8_t esp32_spi_wifi_set_ap_network(uint8_t *ssid, uint8_t channel)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_2param(strlen((const char*)ssid), ssid, 1, &channel);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(SET_AP_NET_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return -1;
+    }
+
+    if (resp->params[0]->param[0] != 1)
+    {
+#if ESP32_SPI_DEBUG
+        printk("Failed to set network\r\n");
+#endif
+        resp->del(resp);
+        return -1;
+    }
+
+    resp->del(resp);
+
+    return 0;
+}
+
+/*
+Sets the access point mode ssid and passphrase
+-1 error
+0 ok
+*/
+int8_t esp32_spi_wifi_set_ap_passphrase(uint8_t *ssid, uint8_t *passphrase, uint8_t channel)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_3param(strlen((const char*)ssid), ssid, strlen((const char*)passphrase), passphrase, 1, &channel);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(SET_AP_PASSPHRASE_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return -1;
+    }
+
+    if (resp->params[0]->param[0] != 1)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: Failed to set passphrase\r\n", __func__);
+#endif
+        resp->del(resp);
+        return -1;
+    }
+
+    resp->del(resp);
+    return 0;
 }
 
 //Converts a bytearray IP address to a dotted-quad string for printing

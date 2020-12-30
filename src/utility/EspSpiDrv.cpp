@@ -148,39 +148,16 @@ bool EspSpiDrv::wifiStartAP(const char* ssid, const char* pwd, uint8_t channel, 
 {
 	LOGDEBUG(F("> wifiStartAP"));
 
-	// TODO
-#if 0
-	// set AP mode, use CUR mode to avoid automatic start at boot
-    int ret = sendCmd(F("AT+CWMODE_CUR=%d"), 10000, espMode);
-	if (ret!=TAG_OK)
-	{
-		LOGWARN1(F("Failed to set AP mode"), ssid);
-		return false;
-	}
+	int ret = esp32_spi_wifi_set_ap_passphrase((uint8_t*)ssid, (uint8_t*)pwd, channel);
 
-	// TODO
-	// Escape character syntax is needed if "SSID" or "password" contains
-	// any special characters (',', '"' and '/')
-
-	// start access point
-	ret = sendCmd(F("AT+CWSAP_CUR=\"%s\",\"%s\",%d,%d"), 10000, ssid, pwd, channel, enc);
-
-	if (ret!=TAG_OK)
+	if (ret!=0)
 	{
 		LOGWARN1(F("Failed to start AP"), ssid);
 		return false;
 	}
-	
-	if (espMode==2)
-		sendCmd(F("AT+CWDHCP_CUR=0,1"));    // enable DHCP for AP mode
-	if (espMode==3)
-		sendCmd(F("AT+CWDHCP_CUR=2,1"));    // enable DHCP for station and AP mode
 
 	LOGINFO1(F("Access point started"), ssid);
 	return true;
-#else
-	return false;
-#endif
 }
 
 
