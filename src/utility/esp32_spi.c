@@ -1824,7 +1824,7 @@ int8_t esp32_spi_start_server(uint16_t port, uint8_t sock, uint8_t protMode)
     port_arr[0] = (uint8_t)(port >> 8);
     port_arr[1] = (uint8_t)(port);
 
-    esp32_spi_params_t *send = esp32_spi_params_alloc_3param(2, &port_arr, 1, &sock, 1, &protMode);
+    esp32_spi_params_t *send = esp32_spi_params_alloc_3param(2, port_arr, 1, &sock, 1, &protMode);
     esp32_spi_params_t *resp = esp32_spi_send_command_get_response(START_SERVER_TCP_CMD, send, NULL, 0, 0);
     send->del(send);
 
