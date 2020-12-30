@@ -494,6 +494,11 @@ bool EspSpiDrv::startClient(const char* host, uint16_t port, uint8_t sock, uint8
 {
 	LOGDEBUG2(F("> startClient"), host, port);
 	
+    if (!strcmp(host, "0"))
+    {
+	    return esp32_spi_start_server(port, sock, protMode);
+    }
+
     if (sock != 0xff)
     {
         uint8_t ip[6];
