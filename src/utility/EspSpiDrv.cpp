@@ -607,7 +607,13 @@ bool EspSpiDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const
 	if (!startClient(host, port, sock, UDP_MODE)) {
 		return false;
 	}
-	return sendData(sock, data, len);
+	if (esp32_spi_add_udp_data(sock, (uint8_t*)data, len) < 0) {
+		return false;
+	}
+	if (esp32_spi_send_udp_data(sock) < 0) {
+		return false;
+	}
+	return true;
 }
 
 
