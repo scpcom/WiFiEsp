@@ -1494,6 +1494,42 @@ int8_t esp32_spi_socket_open(uint8_t sock_num, uint8_t *dest, uint8_t dest_type,
     return 0;
 }
 
+//Get the socket remote ip and port
+// -1 error
+// 0 ok
+int8_t esp32_spi_get_remote_data(uint8_t sock, uint8_t *ip, uint8_t *port)
+{
+    uint32_t num_resp = 2;
+
+    esp32_spi_params_t *send = esp32_spi_params_alloc_1param(1, &sock);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(GET_REMOTE_INFO_CMD, send, &num_resp, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return -1;
+    }
+
+    if (resp->params_num != 2)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: resp->params_num  error!\r\n", __func__);
+#endif
+        resp->del(resp);
+        return -1;
+    }
+
+    memcpy(ip, resp->params[0]->param, resp->params[0]->param_len);
+    memcpy(port, resp->params[1]->param, resp->params[1]->param_len);
+
+    resp->del(resp);
+
+    return 0;
+}
+
 //Get the socket connection status, can be SOCKET_CLOSED, SOCKET_LISTEN,
 //        SOCKET_SYN_SENT, SOCKET_SYN_RCVD, SOCKET_ESTABLISHED, SOCKET_FIN_WAIT_1,
 //        SOCKET_FIN_WAIT_2, SOCKET_CLOSE_WAIT, SOCKET_CLOSING, SOCKET_LAST_ACK, or

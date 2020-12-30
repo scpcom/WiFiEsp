@@ -549,7 +549,16 @@ uint16_t EspSpiDrv::availData(uint8_t connId)
 {
     //LOGDEBUG(bufPos);
 
-	return esp32_spi_socket_available(connId);
+	uint16_t ret = esp32_spi_socket_available(connId);
+
+	if (ret > 0) {
+		uint8_t _remotePortArr[2] = {0};
+
+		esp32_spi_get_remote_data(connId, _remoteIp, _remotePortArr);
+		_remotePort = (_remotePortArr[0]<<8)+_remotePortArr[1];
+	}
+
+	return ret;
 }
 
 
