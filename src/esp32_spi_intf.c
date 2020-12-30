@@ -7,7 +7,6 @@
 #include "utility/esp32_spi_io.h"
 #include "esp32_spi_intf.h"
 #include "fpioa.h"
-#include "wiring_digital.h"
 
 #define wifi_esp32_spi_ValueError(m) { printf(m); return false; }
 
@@ -85,7 +84,7 @@ static bool esp32_spi_begin(int cs, int rst, int rdy, int mosi, int miso, int sc
     if (spi > 0)
     {
         printf("[esp32_spi] use hard spi(%d)\r\n", spi);
-	hard_spi_begin(27, 26, 28, -1, spi);
+	hard_spi_begin(MD_PIN_MAP(WIFI_SCLK), MD_PIN_MAP(WIFI_MISO), MD_PIN_MAP(WIFI_MOSI), -1, spi);
         hard_spi_config_io();
     }
     else

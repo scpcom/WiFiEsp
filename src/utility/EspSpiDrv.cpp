@@ -50,7 +50,7 @@ void EspSpiDrv::wifiDriverInit(Stream *espSerial)
 
 	bool initOK = false;
 	
-	if (esp32_spi_init_hard(25, 8, 9, 1)) {
+	if (esp32_spi_init_hard(MD_PIN_MAP(WIFI_CS), MD_PIN_MAP(WIFI_RST), MD_PIN_MAP(WIFI_RDY), 1)) {
 		initOK=true;
 	}
 
