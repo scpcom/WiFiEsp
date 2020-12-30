@@ -1812,6 +1812,37 @@ int8_t esp32_spi_socket_close(uint8_t socket_num)
     return 0;
 }
 
+/*
+Starts a server on desired port
+-1 error
+0 ok
+*/
+int8_t esp32_spi_start_server(uint16_t port, uint8_t sock, uint8_t protMode)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_3param(2, (uint8_t*)&port, 1, &sock, 1, &protMode);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(START_SERVER_TCP_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return -1;
+    }
+
+    if (resp->params[0]->param[0] != 1)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: Failed to start server\r\n", __func__);
+#endif
+        resp->del(resp);
+        return -1;
+    }
+
+    resp->del(resp);
+    return 0;
+}
 
 //PIN36 PIN39 PIN34 PIN35 PIN32
 //get esp32 adc val

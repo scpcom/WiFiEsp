@@ -484,14 +484,9 @@ bool EspSpiDrv::startServer(uint16_t port, uint8_t sock)
 {
 	LOGDEBUG1(F("> startServer"), port);
 
-	// TODO
-#if 0
-	int ret = sendCmd(F("AT+CIPSERVER=%d,%d"), 1000, sock, port);
+	int ret = esp32_spi_start_server(port, sock, TCP_MODE);
 
-	return ret==TAG_OK;
-#else
-	return false;
-#endif
+	return ret==0;
 }
 
 
