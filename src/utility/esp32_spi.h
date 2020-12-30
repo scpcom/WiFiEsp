@@ -201,6 +201,7 @@ int esp32_spi_socket_available(uint8_t socket_num);
 int esp32_spi_socket_read(uint8_t socket_num, uint8_t *buff, uint16_t size);
 int8_t esp32_spi_socket_connect(uint8_t socket_num, uint8_t *dest, uint8_t dest_type, uint16_t port, esp32_socket_mode_enum_t conn_mod);
 int8_t esp32_spi_socket_close(uint8_t socket_num);
+esp32_socket_enum_t esp32_spi_server_socket_status(uint8_t socket_num);
 int8_t esp32_spi_start_server(uint16_t port, uint8_t sock, uint8_t protMode);
 
 int8_t esp32_spi_get_adc_val(uint8_t* channels, uint8_t len, uint16_t *val);

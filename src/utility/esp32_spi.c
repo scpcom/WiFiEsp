@@ -1812,6 +1812,37 @@ int8_t esp32_spi_socket_close(uint8_t socket_num)
     return 0;
 }
 
+//Get the server socket connection status, can be SOCKET_CLOSED, SOCKET_LISTEN,
+//        SOCKET_SYN_SENT, SOCKET_SYN_RCVD, SOCKET_ESTABLISHED, SOCKET_FIN_WAIT_1,
+//        SOCKET_FIN_WAIT_2, SOCKET_CLOSE_WAIT, SOCKET_CLOSING, SOCKET_LAST_ACK, or
+//        SOCKET_TIME_WAIT
+// -1 error
+// enum ok
+esp32_socket_enum_t esp32_spi_server_socket_status(uint8_t socket_num)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_1param(1, &socket_num);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(GET_STATE_TCP_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return 0xff;
+    }
+    esp32_socket_enum_t ret;
+
+    ret = (esp32_socket_enum_t)resp->params[0]->param[0];
+
+    resp->del(resp);
+
+#if (ESP32_SPI_DEBUG > 1)
+    printk("sock stat :%d\r\n", ret);
+#endif
+    return ret;
+}
+
 /*
 Starts a server on desired port
 -1 error
