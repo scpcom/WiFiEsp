@@ -26,6 +26,7 @@ along with The Arduino WiFiEsp library.  If not, see
 WiFiEspServer::WiFiEspServer(uint16_t port)
 {
 	_port = port;
+	_lastSock = NO_SOCKET_AVAIL;
 }
 
 void WiFiEspServer::begin()
@@ -59,6 +60,7 @@ void WiFiEspServer::begin()
 
 WiFiEspClient WiFiEspServer::available(byte* status)
 {
+#ifndef WIFI_ESP32_SPI
 	// TODO the original method seems to handle automatic server restart
 
 	int bytes = WIFIDRV::availData(0);
@@ -69,6 +71,37 @@ WiFiEspClient WiFiEspServer::available(byte* status)
 		WiFiEspClient client(WIFIDRV::_connId);
 		return client;
 	}
+#else
+    int sock = NO_SOCKET_AVAIL;
+
+    if (_sock != NO_SOCKET_AVAIL) {
+      // check previous received client socket
+      if (_lastSock != NO_SOCKET_AVAIL) {
+          WiFiEspClient client(_lastSock);
+
+          if (client.connected() && client.available()) {
+              sock = _lastSock;
+          }
+      }
+
+      if (sock == NO_SOCKET_AVAIL) {
+          // check for new client socket
+          sock = WIFIDRV::availData(_sock);
+      }
+    }
+
+    if (sock != NO_SOCKET_AVAIL) {
+        WiFiEspClient client(sock);
+
+        if (status != NULL) {
+            *status = client.status();
+        }
+
+        _lastSock = sock;
+
+        return client;
+    }
+#endif
 
     return WiFiEspClient(255);
 }
