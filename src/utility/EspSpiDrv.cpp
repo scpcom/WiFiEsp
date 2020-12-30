@@ -178,25 +178,25 @@ void EspSpiDrv::config(IPAddress ip)
 {
 	LOGDEBUG(F("> config"));
 
-	// TODO
 #if 0
 	// disable station DHCP
 	sendCmd(F("AT+CWDHCP_CUR=1,0"));
 	
 	// it seems we need to wait here...
 	delay(500);
+#endif
 	
 	char buf[16];
 	sprintf_P(buf, PSTR("%d.%d.%d.%d"), ip[0], ip[1], ip[2], ip[3]);
 
-	int ret = sendCmd(F("AT+CIPSTA_CUR=\"%s\""), 2000, buf);
+	uint32_t dw = ip;
+	int ret = esp32_spi_wifi_set_ip_config(1, (uint8_t*)&dw, NULL, NULL);
 	delay(500);
 
-	if (ret==TAG_OK)
+	if (ret==0)
 	{
 		LOGINFO1(F("IP address set"), buf);
 	}
-#endif
 }
 
 void EspSpiDrv::configAP(IPAddress ip)

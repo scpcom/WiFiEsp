@@ -591,6 +591,39 @@ static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t
     return ret;
 }
 
+// make params struct with four param
+static esp32_spi_params_t *esp32_spi_params_alloc_4param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2, uint32_t len_3, uint8_t *buf_3)
+{
+    esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
+
+    ret->del = delete_esp32_spi_params;
+
+    ret->params_num = 4;
+    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    //
+    ret->params[0] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[0]->param_len = len_0;
+    ret->params[0]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_0);
+    memcpy(ret->params[0]->param, buf_0, len_0);
+    //
+    ret->params[1] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[1]->param_len = len_1;
+    ret->params[1]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_1);
+    memcpy(ret->params[1]->param, buf_1, len_1);
+    //
+    ret->params[2] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[2]->param_len = len_2;
+    ret->params[2]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_2);
+    memcpy(ret->params[2]->param, buf_2, len_2);
+    //
+    ret->params[3] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    ret->params[3]->param_len = len_3;
+    ret->params[3]->param = (uint8_t *)malloc(sizeof(uint8_t) * len_3);
+    memcpy(ret->params[3]->param, buf_3, len_3);
+
+    return ret;
+}
+
 /// A bytearray containing the MAC address of the ESP32
 //NULL error
 //other ok
@@ -820,6 +853,39 @@ int8_t esp32_spi_wifi_wifi_set_passphrase(uint8_t *ssid, uint8_t *passphrase)
     }
 
     resp->del(resp);
+    return 0;
+}
+
+/**
+ Tells the ESP32 to set ip configuration to the given data
+ -1 error
+  0 ok
+ */
+int8_t esp32_spi_wifi_set_ip_config(uint8_t validParams, uint8_t *local_ip, uint8_t *gateway, uint8_t *subnet)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_4param(1, &validParams, 4, local_ip, 4, gateway, 4, subnet);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(SET_IP_CONFIG_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+#if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+#endif
+        return -1;
+    }
+
+    if (resp->params[0]->param[0] != 1)
+    {
+#if ESP32_SPI_DEBUG
+        printk("Failed to set ip config\r\n");
+#endif
+        resp->del(resp);
+        return -1;
+    }
+
+    resp->del(resp);
+
     return 0;
 }
 

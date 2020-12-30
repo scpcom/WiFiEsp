@@ -176,6 +176,7 @@ esp32_spi_aps_list_t *esp32_spi_get_scan_networks(void);
 esp32_spi_aps_list_t *esp32_spi_scan_networks(void);
 int8_t esp32_spi_wifi_set_network(uint8_t *ssid);
 int8_t esp32_spi_wifi_wifi_set_passphrase(uint8_t *ssid, uint8_t *passphrase);
+int8_t esp32_spi_wifi_set_ip_config(uint8_t validParams, uint8_t *local_ip, uint8_t *gateway, uint8_t *subnet);
 char *esp32_spi_get_ssid(void);
 char *esp32_spi_get_bssid(void);
 int8_t esp32_spi_get_rssi(void);
