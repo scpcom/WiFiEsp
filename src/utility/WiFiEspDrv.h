@@ -3,7 +3,11 @@
 
 #ifndef WIFI_ESP_AT
 #ifndef WIFI_ESP32_SPI
+#ifdef K210
 #define WIFI_ESP32_SPI
+#else
+#define WIFI_ESP_AT
+#endif
 #endif
 #endif
 
