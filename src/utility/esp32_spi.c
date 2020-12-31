@@ -527,8 +527,20 @@ char *esp32_spi_firmware_version(char* fw_version)
 static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
 {
     esp32_spi_param_t *ret = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+
+    if (!ret) {
+        return NULL;
+    }
+
     ret->param_len = len;
     ret->param = (uint8_t *)malloc(sizeof(uint8_t) * len);
+
+
+    if (!ret->param) {
+            ret->param_len = 0;
+            return ret;
+    }
+
     memcpy(ret->param, buf, len);
 
     return ret;
@@ -539,10 +551,21 @@ static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num)
 {
     esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
 
+    if (!ret) {
+        return NULL;
+    }
+
     ret->del = delete_esp32_spi_params;
 
     ret->params_num = num;
     ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+
+    if (!ret->params) {
+	    ret->params_num = 0;
+	    return ret;
+    }
+
+    memset(ret->params, 0, sizeof(void *) * ret->params_num);
 
     return ret;
 }
