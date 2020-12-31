@@ -22,7 +22,7 @@ static void esp32_spi_reset(void);
 static void delete_esp32_spi_params(void *arg);
 static void delete_esp32_spi_aps_list(void *arg);
 static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num);
-static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf);
+static esp32_spi_param_t *esp32_spi_param_alloc(esp32_spi_params_t *lst, uint32_t idx, uint32_t len, uint8_t *buf);
 static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *buf);
 static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1);
 static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, uint8_t param_len_16);
@@ -412,7 +412,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
         printk("\tParameter #%d length is %d\r\n", i, param_len);
 #endif
 
-        params_ret->params[i] = esp32_spi_param_alloc(param_len, NULL);
+        esp32_spi_param_alloc(params_ret, i, param_len, NULL);
         esp32_spi_read_bytes(params_ret->params[i]->param, params_ret->params[i]->param_len);
     }
 
@@ -521,9 +521,19 @@ char *esp32_spi_firmware_version(char* fw_version)
 }
 
 // make one param
-static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
+static esp32_spi_param_t *esp32_spi_param_alloc(esp32_spi_params_t *lst, uint32_t idx, uint32_t len, uint8_t *buf)
 {
-    esp32_spi_param_t *ret = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
+    esp32_spi_param_t *ret;
+
+    if (!lst) {
+        return NULL;
+    }
+
+    if (idx >= lst->params_num) {
+        return NULL;
+    }
+
+    ret = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
 
     if (!ret) {
         return NULL;
@@ -540,6 +550,8 @@ static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
     if (buf) {
         memcpy(ret->param, buf, len);
     }
+
+    lst->params[idx] = ret;
 
     return ret;
 }
@@ -572,7 +584,7 @@ static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num)
 static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *buf)
 {
     esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(1);
-    ret->params[0] = esp32_spi_param_alloc(len, buf);
+    esp32_spi_param_alloc(ret, 0, len, buf);
 
     return ret;
 }
@@ -581,8 +593,8 @@ static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *
 static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1)
 {
     esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(2);
-    ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
-    ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
+    esp32_spi_param_alloc(ret, 0, len_0, buf_0);
+    esp32_spi_param_alloc(ret, 1, len_1, buf_1);
 
     return ret;
 }
@@ -591,9 +603,9 @@ static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t
 static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2)
 {
     esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(3);
-    ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
-    ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
-    ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
+    esp32_spi_param_alloc(ret, 0, len_0, buf_0);
+    esp32_spi_param_alloc(ret, 1, len_1, buf_1);
+    esp32_spi_param_alloc(ret, 2, len_2, buf_2);
 
     return ret;
 }
@@ -602,10 +614,10 @@ static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t
 static esp32_spi_params_t *esp32_spi_params_alloc_4param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2, uint32_t len_3, uint8_t *buf_3)
 {
     esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(4);
-    ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
-    ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
-    ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
-    ret->params[3] = esp32_spi_param_alloc(len_3, buf_3);
+    esp32_spi_param_alloc(ret, 0, len_0, buf_0);
+    esp32_spi_param_alloc(ret, 1, len_1, buf_1);
+    esp32_spi_param_alloc(ret, 2, len_2, buf_2);
+    esp32_spi_param_alloc(ret, 3, len_3, buf_3);
 
     return ret;
 }
@@ -614,11 +626,11 @@ static esp32_spi_params_t *esp32_spi_params_alloc_4param(uint32_t len_0, uint8_t
 static esp32_spi_params_t *esp32_spi_params_alloc_5param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2, uint32_t len_3, uint8_t *buf_3, uint32_t len_4, uint8_t *buf_4)
 {
     esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(5);
-    ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
-    ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
-    ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
-    ret->params[3] = esp32_spi_param_alloc(len_3, buf_3);
-    ret->params[4] = esp32_spi_param_alloc(len_4, buf_4);
+    esp32_spi_param_alloc(ret, 0, len_0, buf_0);
+    esp32_spi_param_alloc(ret, 1, len_1, buf_1);
+    esp32_spi_param_alloc(ret, 2, len_2, buf_2);
+    esp32_spi_param_alloc(ret, 3, len_3, buf_3);
+    esp32_spi_param_alloc(ret, 4, len_4, buf_4);
 
     return ret;
 }
