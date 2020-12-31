@@ -412,8 +412,10 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
         printk("\tParameter #%d length is %d\r\n", i, param_len);
 #endif
 
-        esp32_spi_param_alloc(params_ret, i, param_len, NULL);
-        esp32_spi_read_bytes(params_ret->params[i]->param, params_ret->params[i]->param_len);
+        if (esp32_spi_param_alloc(params_ret, i, param_len, NULL))
+            esp32_spi_read_bytes(params_ret->params[i]->param, params_ret->params[i]->param_len);
+        else
+            break;
     }
 
     if (esp32_spi_check_data(END_CMD) != 0)
@@ -439,7 +441,9 @@ esp32_spi_params_t *esp32_spi_send_command_get_response(uint8_t cmd, esp32_spi_p
     else
         resp_num = *num_resp;
 
-    esp32_spi_send_command(cmd, params, sent_param_len_16);
+    if (esp32_spi_send_command(cmd, params, sent_param_len_16) < 0)
+        return NULL;
+
     return esp32_spi_wait_response_cmd(cmd, &resp_num, recv_param_len_16);
 }
 
@@ -721,7 +725,9 @@ other ok
 esp32_spi_aps_list_t *esp32_spi_get_scan_networks(void)
 {
 
-    esp32_spi_send_command(SCAN_NETWORKS, NULL, 0);
+    if (esp32_spi_send_command(SCAN_NETWORKS, NULL, 0) < 0)
+        return NULL;
+
     esp32_spi_params_t *resp = esp32_spi_wait_response_cmd(SCAN_NETWORKS, NULL, 0);
 
     if (resp == NULL)
