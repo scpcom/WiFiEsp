@@ -534,15 +534,23 @@ static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
     return ret;
 }
 
-// make params struct with one param
-static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *buf)
+// init params struct
+static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num)
 {
     esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
 
     ret->del = delete_esp32_spi_params;
 
-    ret->params_num = 1;
+    ret->params_num = num;
     ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+
+    return ret;
+}
+
+// make params struct with one param
+static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *buf)
+{
+    esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(1);
     ret->params[0] = esp32_spi_param_alloc(len, buf);
 
     return ret;
@@ -551,12 +559,7 @@ static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *
 // make params struct with two param
 static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1)
 {
-    esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
-
-    ret->del = delete_esp32_spi_params;
-
-    ret->params_num = 2;
-    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(2);
     ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
     ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
 
@@ -566,12 +569,7 @@ static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t
 // make params struct with three param
 static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2)
 {
-    esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
-
-    ret->del = delete_esp32_spi_params;
-
-    ret->params_num = 3;
-    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(3);
     ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
     ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
     ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
@@ -582,12 +580,7 @@ static esp32_spi_params_t *esp32_spi_params_alloc_3param(uint32_t len_0, uint8_t
 // make params struct with four param
 static esp32_spi_params_t *esp32_spi_params_alloc_4param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2, uint32_t len_3, uint8_t *buf_3)
 {
-    esp32_spi_params_t *ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
-
-    ret->del = delete_esp32_spi_params;
-
-    ret->params_num = 4;
-    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(4);
     ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
     ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
     ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
