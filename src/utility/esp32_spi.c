@@ -21,6 +21,8 @@ uint8_t cs_num, rst_num, rdy_num, is_hard_spi;
 static void esp32_spi_reset(void);
 static void delete_esp32_spi_params(void *arg);
 static void delete_esp32_spi_aps_list(void *arg);
+static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num);
+static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf);
 static esp32_spi_params_t *esp32_spi_params_alloc_1param(uint32_t len, uint8_t *buf);
 static esp32_spi_params_t *esp32_spi_params_alloc_2param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1);
 static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, uint8_t param_len_16);
@@ -394,28 +396,23 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
         num_of_resp = esp32_spi_read_byte();
     }
 
-    esp32_spi_params_t *params_ret = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
-
-    params_ret->del = delete_esp32_spi_params;
-    params_ret->params_num = num_of_resp;
-    params_ret->params = (void *)malloc(sizeof(void *) * num_of_resp);
+    esp32_spi_params_t *params_ret = esp32_spi_params_alloc_struct(num_of_resp);
 
     for (uint32_t i = 0; i < num_of_resp; i++)
     {
-        params_ret->params[i] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        params_ret->params[i]->param_len = esp32_spi_read_byte();
+        uint32_t param_len = esp32_spi_read_byte();
 
         if (param_len_16)
         {
-            params_ret->params[i]->param_len <<= 8;
-            params_ret->params[i]->param_len |= esp32_spi_read_byte();
+            param_len <<= 8;
+            param_len |= esp32_spi_read_byte();
         }
 
 #if (ESP32_SPI_DEBUG >= 2)
-        printk("\tParameter #%d length is %d\r\n", i, params_ret->params[i]->param_len);
+        printk("\tParameter #%d length is %d\r\n", i, param_len);
 #endif
 
-        params_ret->params[i]->param = (uint8_t *)malloc(sizeof(uint8_t) * params_ret->params[i]->param_len);
+        params_ret->params[i] = esp32_spi_param_alloc(param_len, NULL);
         esp32_spi_read_bytes(params_ret->params[i]->param, params_ret->params[i]->param_len);
     }
 
@@ -540,7 +537,9 @@ static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
         return ret;
     }
 
-    memcpy(ret->param, buf, len);
+    if (buf) {
+        memcpy(ret->param, buf, len);
+    }
 
     return ret;
 }
@@ -607,6 +606,19 @@ static esp32_spi_params_t *esp32_spi_params_alloc_4param(uint32_t len_0, uint8_t
     ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
     ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
     ret->params[3] = esp32_spi_param_alloc(len_3, buf_3);
+
+    return ret;
+}
+
+// make params struct with five param
+static esp32_spi_params_t *esp32_spi_params_alloc_5param(uint32_t len_0, uint8_t *buf_0, uint32_t len_1, uint8_t *buf_1, uint32_t len_2, uint8_t *buf_2, uint32_t len_3, uint8_t *buf_3, uint32_t len_4, uint8_t *buf_4)
+{
+    esp32_spi_params_t *ret = esp32_spi_params_alloc_struct(5);
+    ret->params[0] = esp32_spi_param_alloc(len_0, buf_0);
+    ret->params[1] = esp32_spi_param_alloc(len_1, buf_1);
+    ret->params[2] = esp32_spi_param_alloc(len_2, buf_2);
+    ret->params[3] = esp32_spi_param_alloc(len_3, buf_3);
+    ret->params[4] = esp32_spi_param_alloc(len_4, buf_4);
 
     return ret;
 }
@@ -1386,74 +1398,16 @@ int8_t esp32_spi_socket_open(uint8_t sock_num, uint8_t *dest, uint8_t dest_type,
     printk("port: 0x%02x 0x%02x\r\n", port_arr[0], port_arr[1]);
 #endif
 
-    esp32_spi_params_t *send = (esp32_spi_params_t *)malloc(sizeof(esp32_spi_params_t));
-    send->del = delete_esp32_spi_params;
-
-    uint32_t param_len = 0;
+    esp32_spi_params_t *send = NULL;
 
     if (dest_type)
     {
-        send->params_num = 5;
-        send->params = (void *)malloc(sizeof(void *) * send->params_num);
-        //
-        param_len = strlen((const char*)dest);
-        send->params[0] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[0]->param_len = param_len;
-        send->params[0]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        memcpy(send->params[0]->param, dest, param_len);
-        //
-        param_len = 4;
-        send->params[1] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[1]->param_len = param_len;
-        send->params[1]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        memset(send->params[1]->param, 0, param_len);
-        //
-        param_len = 2;
-        send->params[2] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[2]->param_len = param_len;
-        send->params[2]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        memcpy(send->params[2]->param, port_arr, param_len);
-        //
-        param_len = 1;
-        send->params[3] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[3]->param_len = param_len;
-        send->params[3]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        send->params[3]->param[0] = sock_num;
-        //
-        param_len = 1;
-        send->params[4] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[4]->param_len = param_len;
-        send->params[4]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        send->params[4]->param[0] = conn_mode;
+        uint32_t empty = 0;
+        send = esp32_spi_params_alloc_5param(strlen((const char*)dest), dest, 4, (uint8_t *)&empty, 2, port_arr, 1, &sock_num, 1, (uint8_t *)&conn_mode);
     }
     else
     {
-        send->params_num = 4;
-        send->params = (void *)malloc(sizeof(void *) * send->params_num);
-        //
-        param_len = 4;
-        send->params[0] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[0]->param_len = param_len;
-        send->params[0]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        memcpy(send->params[0]->param, dest, param_len);
-        //
-        param_len = 2;
-        send->params[1] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[1]->param_len = param_len;
-        send->params[1]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        memcpy(send->params[1]->param, port_arr, param_len);
-        //
-        param_len = 1;
-        send->params[2] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[2]->param_len = param_len;
-        send->params[2]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        send->params[2]->param[0] = sock_num;
-        //
-        param_len = 1;
-        send->params[3] = (esp32_spi_param_t *)malloc(sizeof(esp32_spi_param_t));
-        send->params[3]->param_len = param_len;
-        send->params[3]->param = (uint8_t *)malloc(sizeof(uint8_t) * param_len);
-        send->params[3]->param[0] = conn_mode;
+        send = esp32_spi_params_alloc_4param(4, dest, 2, port_arr, 1, &sock_num, 1, (uint8_t *)&conn_mode);
     }
 
     esp32_spi_params_t *resp = esp32_spi_send_command_get_response(START_CLIENT_TCP_CMD, send, NULL, 0, 0);
