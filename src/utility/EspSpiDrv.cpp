@@ -319,6 +319,7 @@ uint8_t EspSpiDrv::getScanNetworks()
 
 		ssidListNum++;
 	}
+	aps_list->del(aps_list);
 
 	LOGDEBUG1(F("---------------------------------------------- >"), ssidListNum);
 	LOGDEBUG();
