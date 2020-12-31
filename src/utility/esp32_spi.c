@@ -535,10 +535,9 @@ static esp32_spi_param_t *esp32_spi_param_alloc(uint32_t len, uint8_t *buf)
     ret->param_len = len;
     ret->param = (uint8_t *)malloc(sizeof(uint8_t) * len);
 
-
     if (!ret->param) {
-            ret->param_len = 0;
-            return ret;
+        ret->param_len = 0;
+        return ret;
     }
 
     memcpy(ret->param, buf, len);
@@ -561,8 +560,8 @@ static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num)
     ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
 
     if (!ret->params) {
-	    ret->params_num = 0;
-	    return ret;
+        ret->params_num = 0;
+        return ret;
     }
 
     memset(ret->params, 0, sizeof(void *) * ret->params_num);
