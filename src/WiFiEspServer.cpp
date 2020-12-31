@@ -33,16 +33,16 @@ void WiFiEspServer::begin()
 {
 	LOGDEBUG(F("Starting server"));
 
+#ifdef WIFI_ESP_AT
 	/* The ESP Module only allows socket 1 to be used for the server */
-#if 0
+	_sock = 1; // If this is already in use, the startServer attempt will fail
+#else
 	_sock = WiFiEspClass::getFreeSocket();
 	if (_sock == SOCK_NOT_AVAIL)
 	  {
 	    LOGERROR(F("No socket available for server"));
 	    return;
 	  }
-#else
-	_sock = 1; // If this is already in use, the startServer attempt will fail
 #endif
 	WiFiEspClass::allocateSocket(_sock);
 
@@ -108,7 +108,11 @@ WiFiEspClient WiFiEspServer::available(byte* status)
 
 uint8_t WiFiEspServer::status()
 {
-    return WIFIDRV::getServerState(0);
+    if (_sock == NO_SOCKET_AVAIL) {
+        return CLOSED;
+    } else {
+        return  WIFIDRV::getServerState(_sock);
+    }
 }
 
 size_t WiFiEspServer::write(uint8_t b)
@@ -119,6 +123,11 @@ size_t WiFiEspServer::write(uint8_t b)
 size_t WiFiEspServer::write(const uint8_t *buffer, size_t size)
 {
 	size_t n = 0;
+
+    if (size==0)
+    {
+        return 0;
+    }
 
     for (int sock = 0; sock < MAX_SOCK_NUM; sock++)
     {

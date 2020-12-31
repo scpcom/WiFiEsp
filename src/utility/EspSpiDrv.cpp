@@ -460,7 +460,7 @@ void EspSpiDrv::stopClient(uint8_t sock)
 
 uint8_t EspSpiDrv::getServerState(uint8_t sock)
 {
-    return 0;
+    return esp32_spi_server_socket_status(sock);
 }
 
 
