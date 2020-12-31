@@ -739,14 +739,32 @@ esp32_spi_aps_list_t *esp32_spi_get_scan_networks(void)
     }
 
     esp32_spi_aps_list_t *aps = (esp32_spi_aps_list_t *)malloc(sizeof(esp32_spi_aps_list_t));
+
+    if (!aps) {
+        resp->del(resp);
+        return NULL;
+    }
+
     aps->del = delete_esp32_spi_aps_list;
 
     aps->aps_num = resp->params_num;
     aps->aps = (void *)malloc(sizeof(void *) * aps->aps_num);
 
+    if (!aps->aps) {
+        aps->aps_num = 0;
+        resp->del(resp);
+        return aps;
+    }
+
     for (uint32_t i = 0; i < aps->aps_num; i++)
     {
         aps->aps[i] = (esp32_spi_ap_t *)malloc(sizeof(esp32_spi_ap_t));
+
+        if (!aps->aps[i]) {
+            aps->aps_num = i;
+            break;
+        }
+
         memcpy(aps->aps[i]->ssid, resp->params[i]->param, (resp->params[i]->param_len > 32) ? 32 : resp->params[i]->param_len);
         aps->aps[i]->ssid[resp->params[i]->param_len] = 0;
 
