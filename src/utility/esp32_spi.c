@@ -1524,7 +1524,7 @@ esp32_socket_enum_t esp32_spi_socket_status(uint8_t socket_num)
 #if ESP32_SPI_DEBUG
         printk("%s: get resp error!\r\n", __func__);
 #endif
-        return 0xff;
+        return SOCKET_STATUS_ERROR;
     }
     esp32_socket_enum_t ret;
 
@@ -1783,10 +1783,10 @@ int8_t esp32_spi_socket_connect(uint8_t socket_num, uint8_t *dest, uint8_t dest_
 
     while ((sysctl_get_time_us() - tm) < 3 * 1000 * 1000) //3s
     {
-        uint8_t ret = esp32_spi_socket_status(socket_num);
+        esp32_socket_enum_t ret = esp32_spi_socket_status(socket_num);
         if (ret == SOCKET_ESTABLISHED)
             return 0;
-        else if(ret == 0xff) // EIO
+        else if(ret == SOCKET_STATUS_ERROR) // EIO
         {
             return -2;
         }
@@ -1842,7 +1842,7 @@ esp32_socket_enum_t esp32_spi_server_socket_status(uint8_t socket_num)
 #if ESP32_SPI_DEBUG
         printk("%s: get resp error!\r\n", __func__);
 #endif
-        return 0xff;
+        return SOCKET_STATUS_ERROR;
     }
     esp32_socket_enum_t ret;
 
@@ -1961,6 +1961,7 @@ char *socket_enum_to_str(esp32_socket_enum_t x)
         ENUM_TO_STR(SOCKET_CLOSING);
         ENUM_TO_STR(SOCKET_LAST_ACK);
         ENUM_TO_STR(SOCKET_TIME_WAIT);
+        ENUM_TO_STR(SOCKET_STATUS_ERROR);
     }
     return "unknown";
 }

@@ -99,7 +99,9 @@ typedef enum{
     SOCKET_CLOSE_WAIT           = (7),
     SOCKET_CLOSING              = (8),
     SOCKET_LAST_ACK             = (9),
-    SOCKET_TIME_WAIT            = (10)
+    SOCKET_TIME_WAIT            = (10),
+    //
+    SOCKET_STATUS_ERROR         = (0xFF)
 }esp32_socket_enum_t;
 
 typedef enum
