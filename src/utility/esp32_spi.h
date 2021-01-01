@@ -209,8 +209,8 @@ int8_t esp32_spi_start_server(uint16_t port, uint8_t sock, uint8_t protMode);
 
 int8_t esp32_spi_get_adc_val(uint8_t* channels, uint8_t len, uint16_t *val);
 
-char *socket_enum_to_str(esp32_socket_enum_t x);
-char *wlan_enum_to_str(esp32_wlan_enum_t x);
+const char *socket_enum_to_str(esp32_socket_enum_t x);
+const char *wlan_enum_to_str(esp32_wlan_enum_t x);
 
 int8_t esp32_spi_add_udp_data(uint8_t sock_num, uint8_t* data, uint16_t data_len);
 int8_t esp32_spi_send_udp_data(uint8_t sock_num);

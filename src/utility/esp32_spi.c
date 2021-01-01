@@ -572,7 +572,7 @@ static esp32_spi_params_t *esp32_spi_params_alloc_struct(uint32_t num)
     ret->del = delete_esp32_spi_params;
 
     ret->params_num = num;
-    ret->params = (void *)malloc(sizeof(void *) * ret->params_num);
+    ret->params = (esp32_spi_param_t **)malloc(sizeof(void *) * ret->params_num);
 
     if (!ret->params) {
         ret->params_num = 0;
@@ -748,7 +748,7 @@ esp32_spi_aps_list_t *esp32_spi_get_scan_networks(void)
     aps->del = delete_esp32_spi_aps_list;
 
     aps->aps_num = resp->params_num;
-    aps->aps = (void *)malloc(sizeof(void *) * aps->aps_num);
+    aps->aps = (esp32_spi_ap_t **)malloc(sizeof(void *) * aps->aps_num);
 
     if (!aps->aps) {
         aps->aps_num = 0;
@@ -1946,7 +1946,7 @@ int8_t esp32_spi_get_adc_val(uint8_t* channels, uint8_t len, uint16_t *val)
     case (x):          \
         return (#x)
 
-char *socket_enum_to_str(esp32_socket_enum_t x)
+const char *socket_enum_to_str(esp32_socket_enum_t x)
 {
     switch (x)
     {
@@ -1966,7 +1966,7 @@ char *socket_enum_to_str(esp32_socket_enum_t x)
     return "unknown";
 }
 
-char *wlan_enum_to_str(esp32_wlan_enum_t x)
+const char *wlan_enum_to_str(esp32_wlan_enum_t x)
 {
     switch (x)
     {
