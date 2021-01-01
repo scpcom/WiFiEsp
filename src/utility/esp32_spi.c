@@ -32,7 +32,7 @@ void esp32_spi_init(uint8_t t_cs_num, uint8_t t_rst_num, uint8_t t_rdy_num, uint
     cs_num = t_cs_num, rst_num = t_rst_num, rdy_num = t_rdy_num, is_hard_spi = t_hard_spi;
     //cs
     gpiohs_set_drive_mode(cs_num, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(cs_num, 1);
+    gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
 
     //ready
     gpiohs_set_drive_mode(rdy_num, GPIO_DM_INPUT); //ready
@@ -58,17 +58,17 @@ static void esp32_spi_reset(void)
 
 #if ESP32_HAVE_IO0
     gpiohs_set_drive_mode(ESP32_SPI_IO0_HS_NUM, GPIO_DM_OUTPUT); //gpio0
-    gpiohs_set_pin(ESP32_SPI_IO0_HS_NUM, 1);
+    gpiohs_set_pin(ESP32_SPI_IO0_HS_NUM, GPIO_PV_HIGH);
 #endif
 
     //here we sleep 1s
-    gpiohs_set_pin(cs_num, 1);
+    gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
 
     if ((int8_t)rst_num > 0)
     {
-        gpiohs_set_pin(rst_num, 0);
+        gpiohs_set_pin(rst_num, GPIO_PV_LOW);
         msleep(500);
-        gpiohs_set_pin(rst_num, 1);
+        gpiohs_set_pin(rst_num, GPIO_PV_HIGH);
         msleep(800);
     }
     else
@@ -188,7 +188,7 @@ static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, ui
     sendbuf[ptr] = END_CMD;
 
     esp32_spi_wait_for_ready();
-    gpiohs_set_pin(cs_num, 0);
+    gpiohs_set_pin(cs_num, GPIO_PV_LOW);
 
     uint64_t tm = sysctl_get_time_us();
     while ((sysctl_get_time_us() - tm) < 1000 * 1000)
@@ -203,7 +203,7 @@ static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, ui
 #if (ESP32_SPI_DEBUG)
         printk("ESP32 timed out on SPI select\r\n");
 #endif
-        gpiohs_set_pin(cs_num, 1);
+        gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
         if (lc_buf_flag == 0)
         {
             free(sendbuf);
@@ -221,7 +221,7 @@ static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, ui
     } else {
         soft_spi_rw_len(sendbuf, NULL, packet_len);
     }
-    gpiohs_set_pin(cs_num, 1);
+    gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
 
 #if (ESP32_SPI_DEBUG >= 3)
     if (packet_len < 100)
@@ -342,7 +342,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 
     esp32_spi_wait_for_ready();
 
-    gpiohs_set_pin(cs_num, 0);
+    gpiohs_set_pin(cs_num, GPIO_PV_LOW);
 
     uint64_t tm = sysctl_get_time_us();
     while ((sysctl_get_time_us() - tm) < 1000 * 1000)
@@ -357,7 +357,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 #if ESP32_SPI_DEBUG
         printk("ESP32 timed out on SPI select\r\n");
 #endif
-        gpiohs_set_pin(cs_num, 1);
+        gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
         return NULL;
     }
 
@@ -366,7 +366,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 #if ESP32_SPI_DEBUG
         printk("esp32_spi_wait_spi_char START_CMD error\r\n");
 #endif
-        gpiohs_set_pin(cs_num, 1);
+        gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
         return NULL;
     }
 
@@ -375,7 +375,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 #if ESP32_SPI_DEBUG
         printk("esp32_spi_check_data cmd | REPLY_FLAG error\r\n");
 #endif
-        gpiohs_set_pin(cs_num, 1);
+        gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
         return NULL;
     }
 
@@ -386,7 +386,7 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 #if ESP32_SPI_DEBUG
             printk("esp32_spi_check_data num_responses error\r\n");
 #endif
-            gpiohs_set_pin(cs_num, 1);
+            gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
             return NULL;
         }
         num_of_resp = *num_responses;
@@ -423,11 +423,11 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 #if ESP32_SPI_DEBUG
         printk("esp32_spi_check_data END_CMD error\r\n");
 #endif
-        gpiohs_set_pin(cs_num, 1);
+        gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
         return NULL;
     }
 
-    gpiohs_set_pin(cs_num, 1);
+    gpiohs_set_pin(cs_num, GPIO_PV_HIGH);
 
     return params_ret;
 }

@@ -25,10 +25,10 @@ void soft_spi_config_io(uint8_t mosi, uint8_t miso, uint8_t sclk)
 {
     //clk
     gpiohs_set_drive_mode(sclk, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(sclk, 0);
+    gpiohs_set_pin(sclk, GPIO_PV_LOW);
     //mosi
     gpiohs_set_drive_mode(mosi, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(mosi, 0);
+    gpiohs_set_pin(mosi, GPIO_PV_LOW);
     //miso
     gpiohs_set_drive_mode(miso, GPIO_DM_INPUT_PULL_UP);
 
