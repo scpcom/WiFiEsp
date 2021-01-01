@@ -1,7 +1,29 @@
 #ifndef __ESP32_SPI_H
 #define __ESP32_SPI_H
 
+#include <stdbool.h>
 #include <stdint.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#ifdef K210
+#ifndef WIFI_CS
+#define WIFI_CS   SPI0_CS1
+#endif
+#ifndef WIFI_MISO
+#define WIFI_MISO SPI0_MISO
+#define WIFI_SCLK SPI0_SCLK
+#define WIFI_MOSI SPI0_MOSI
+#endif
+#ifndef WIFI_RDY
+#define WIFI_RDY ORG_PIN_MAP(9)
+#define WIFI_RST ORG_PIN_MAP(8)
+#define WIFI_RX  ORG_PIN_MAP(7)
+#define WIFI_TX  ORG_PIN_MAP(6)
+#endif
+#endif
 
 /* clang-format off */
 #define ESP32_SPI_DEBUG                 (0)
@@ -169,6 +191,9 @@ typedef struct
 } esp32_spi_net_t;
 
 void esp32_spi_init(uint8_t cs_num, uint8_t rst_num, uint8_t rdy_num, uint8_t is_hard_spi);
+bool esp32_spi_begin(int cs, int rst, int rdy, int mosi, int miso, int sclk, int spi);
+bool esp32_spi_init_soft(int cs, int rst, int rdy, int mosi, int miso, int sclk);
+bool esp32_spi_init_hard(int cs, int rst, int rdy, int spi);
 int8_t esp32_spi_status(void);
 char *esp32_spi_firmware_version(char* fw_version);
 uint8_t *esp32_spi_MAC_address(void);
@@ -217,4 +242,9 @@ int8_t esp32_spi_send_udp_data(uint8_t sock_num);
 int8_t esp32_spi_get_remote_info(uint8_t socket_num, uint8_t* ip, uint16_t* port);
 
 uint8_t connect_server_port(char *host, uint16_t port);
+
+#ifdef __cplusplus
+}
+#endif
+
 #endif

@@ -24,7 +24,7 @@ along with The Arduino WiFiEsp library.  If not, see
 
 
 #include "EspRingBuffer.h"
-#include "esp32_spi_intf.h"
+#include "esp32_spi.h"
 
 
 
