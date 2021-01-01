@@ -6,7 +6,6 @@
 
 #include <utils.h>
 #include "spi.h"
-#include "esp32_spi.h"
 
 #include "fpioa.h"
 
@@ -148,6 +147,53 @@ static spi_transfer_width_t sipeed_spi_get_frame_size(size_t data_bit_length)
     else if (data_bit_length < 16)
         return SPI_TRANS_SHORT;
     return SPI_TRANS_INT;
+}
+
+int gpiohs_register(int8_t fpio_pin)
+{
+    if ((fpio_pin < 0) || (fpio_pin > 47)) {
+       return -1;
+    }
+    int gpionum = get_gpio(fpio_pin);
+    if(gpionum >= 0){
+        fpioa_function_t function = FUNC_GPIOHS0 + gpionum;
+        fpioa_set_function(fpio_pin, function);
+        //gpiohs_set_drive_mode((uint8_t)gpionum, (gpio_drive_mode_t)dwMode);
+    }
+    return gpionum;
+}
+
+bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _spiNum)
+{
+    //hardware SPI
+    if(_spiNum == 0)
+    {
+        fpioa_set_function(sck, FUNC_SPI0_SCLK);
+        /*if( ss >= 0)
+        {
+            fpioa_function_t a = (fpioa_function_t)(FUNC_SPI0_SS0+setSs(_spiNum, ss));
+            fpioa_set_function(ss, a);
+        }*/
+        fpioa_set_function(mosi, FUNC_SPI0_D0);
+        if(miso>=0)
+            fpioa_set_function(miso, FUNC_SPI0_D1);
+    }
+    else if(_spiNum == 1)
+    {
+        fpioa_set_function(sck, FUNC_SPI1_SCLK);
+        /*if( ss >= 0)
+        {
+            fpioa_set_function(ss, (fpioa_function_t)(FUNC_SPI1_SS0+setSs(_spiNum, ss)));
+        }*/
+        fpioa_set_function(mosi, FUNC_SPI1_D0);
+        if(miso>=0)
+            fpioa_set_function(miso, FUNC_SPI1_D1);
+    }
+    else
+    {
+        return false;
+    }
+    return true;
 }
 
 static void hard_spi_set_tmod(uint8_t spi_num, uint32_t tmod)
