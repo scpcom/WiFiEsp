@@ -130,6 +130,13 @@ size_t WiFiEspClient::write(const uint8_t *buf, size_t size)
 		return 0;
 	}
 
+	if (!WIFIDRV::checkDataSent(_sock))
+	{
+		setWriteError();
+		LOGERROR1(F("Failed to verify write to socket"), _sock);
+		return 0;
+	}
+
 	return size;
 }
 

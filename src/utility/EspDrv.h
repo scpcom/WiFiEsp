@@ -272,6 +272,7 @@ public:
     static int getDataBuf(uint8_t connId, uint8_t *buf, uint16_t bufSize);
     static bool sendData(uint8_t sock, const uint8_t *data, uint16_t len);
     static bool sendData(uint8_t sock, const __FlashStringHelper *data, uint16_t len, bool appendCrLf=false);
+    static bool checkDataSent(uint8_t sock);
 	static bool sendDataUdp(uint8_t sock, const char* host, uint16_t port, const uint8_t *data, uint16_t len);
     static uint16_t availData(uint8_t connId);
 

@@ -863,6 +863,11 @@ bool EspDrv::sendData(uint8_t sock, const __FlashStringHelper *data, uint16_t le
     return true;
 }
 
+bool EspDrv::checkDataSent(uint8_t sock)
+{
+	return true;
+}
+
 bool EspDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const uint8_t *data, uint16_t len)
 {
 	LOGDEBUG2(F("> sendDataUdp:"), sock, len);

@@ -540,6 +540,25 @@ bool EspSpiDrv::sendData(uint8_t sock, const __FlashStringHelper *data, uint16_t
     return true;
 }
 
+bool EspSpiDrv::checkDataSent(uint8_t sock)
+{
+    const uint16_t TIMEOUT_DATA_SENT = 25;
+    uint16_t timeout = 0;
+    int8_t _data = 0;
+
+    do {
+        _data = esp32_spi_check_data_sent(sock);
+
+        if (_data>0) timeout = 0;
+        else{
+            ++timeout;
+            delay(100);
+        }
+
+    }while((_data<1)&&(timeout<TIMEOUT_DATA_SENT));
+    return (timeout==TIMEOUT_DATA_SENT)?0:1;
+}
+
 bool EspSpiDrv::sendDataUdp(uint8_t sock, const char* host, uint16_t port, const uint8_t *data, uint16_t len)
 {
 	LOGDEBUG2(F("> sendDataUdp:"), sock, len);

@@ -1669,6 +1669,36 @@ uint32_t esp32_spi_socket_write(uint8_t socket_num, uint8_t *buffer, uint16_t le
     resp->del(resp);
     return sent;
 }
+
+//1 ok
+//other error
+int8_t esp32_spi_check_data_sent(uint8_t socket_num)
+{
+    esp32_spi_params_t *send = esp32_spi_params_alloc_1param(1, &socket_num);
+    esp32_spi_params_t *resp = esp32_spi_send_command_get_response(DATA_SENT_TCP_CMD, send, NULL, 0, 0);
+    send->del(send);
+
+    if (resp == NULL)
+    {
+  #if ESP32_SPI_DEBUG
+        printk("%s: get resp error!\r\n", __func__);
+  #endif
+        return -1;
+    }
+
+    if (resp->params[0]->param[0] != 1)
+    {
+  #if ESP32_SPI_DEBUG
+        printk("%s: Failed to verify data sent\r\n", __func__);
+  #endif
+        resp->del(resp);
+        return 0;
+    }
+
+    resp->del(resp);
+    return 1;
+}
+
 int8_t esp32_spi_add_udp_data(uint8_t socket_num, uint8_t* data, uint16_t data_len)
 {
     esp32_spi_params_t *send = esp32_spi_params_alloc_2param(1, &socket_num, data_len, data );
