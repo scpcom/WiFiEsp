@@ -21,6 +21,9 @@ static uint8_t _sclk_num = -1;
 static spi_device_num_t _spi_num;
 static spi_chip_select_t _chip_select;
 
+extern int8_t setSs(uint8_t spi, int8_t pin);
+extern int8_t getSsByPin(uint8_t spi, int8_t pin);
+
 /* SPI端口初始化 */
 //should check io value
 void soft_spi_config_io(uint8_t mosi, uint8_t miso, uint8_t sclk)
@@ -173,11 +176,11 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     {
         _spi_num = SPI_DEVICE_0;
         fpioa_set_function(sck, FUNC_SPI0_SCLK);
-        /*if( ss >= 0)
+        if( ss >= 0)
         {
             fpioa_function_t a = (fpioa_function_t)(FUNC_SPI0_SS0+setSs(_spiNum, ss));
             fpioa_set_function(ss, a);
-        }*/
+        }
         fpioa_set_function(mosi, FUNC_SPI0_D0);
         if(miso>=0)
             fpioa_set_function(miso, FUNC_SPI0_D1);
@@ -186,10 +189,10 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     {
         _spi_num = SPI_DEVICE_1;
         fpioa_set_function(sck, FUNC_SPI1_SCLK);
-        /*if( ss >= 0)
+        if( ss >= 0)
         {
             fpioa_set_function(ss, (fpioa_function_t)(FUNC_SPI1_SS0+setSs(_spiNum, ss)));
-        }*/
+        }
         fpioa_set_function(mosi, FUNC_SPI1_D0);
         if(miso>=0)
             fpioa_set_function(miso, FUNC_SPI1_D1);
@@ -198,7 +201,7 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     {
         return false;
     }
-    _chip_select = SPI_CHIP_SELECT_0;
+    _chip_select = getSsByPin(_spiNum, ss);
     return true;
 }
 
