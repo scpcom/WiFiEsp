@@ -148,20 +148,6 @@ void soft_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len)
 }
 
 
-int gpiohs_register(int8_t fpio_pin)
-{
-    if ((fpio_pin < 0) || (fpio_pin > 47)) {
-       return -1;
-    }
-    int gpionum = get_gpio(fpio_pin);
-    if(gpionum >= 0){
-        fpioa_function_t function = FUNC_GPIOHS0 + gpionum;
-        fpioa_set_function(fpio_pin, function);
-        //gpiohs_set_drive_mode((uint8_t)gpionum, (gpio_drive_mode_t)dwMode);
-    }
-    return gpionum;
-}
-
 bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _spiNum)
 {
     //hardware SPI
