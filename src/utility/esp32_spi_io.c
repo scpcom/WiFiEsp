@@ -24,6 +24,8 @@ static spi_chip_select_t _chip_select;
 extern int8_t setSs(uint8_t spi, int8_t pin);
 extern int8_t getSsByPin(uint8_t spi, int8_t pin);
 
+extern void sipeed_spi_transfer_data_standard(spi_device_num_t spi_num, int8_t chip_select, const uint8_t *tx_buff,uint8_t *rx_buff,  size_t len);
+
 /* SPI端口初始化 */
 //should check io value
 void soft_spi_config_io(uint8_t mosi, uint8_t miso, uint8_t sclk)
@@ -146,15 +148,6 @@ void soft_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len)
 }
 
 
-static spi_transfer_width_t sipeed_spi_get_frame_size(size_t data_bit_length)
-{
-    if (data_bit_length < 8)
-        return SPI_TRANS_CHAR;
-    else if (data_bit_length < 16)
-        return SPI_TRANS_SHORT;
-    return SPI_TRANS_INT;
-}
-
 int gpiohs_register(int8_t fpio_pin)
 {
     if ((fpio_pin < 0) || (fpio_pin > 47)) {
@@ -205,115 +198,6 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     return true;
 }
 
-static void hard_spi_set_tmod(uint8_t spi_num, uint32_t tmod)
-{
-    configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
-    volatile spi_t *spi_handle = spi[spi_num];
-    uint8_t tmod_offset = 0;
-    switch (spi_num)
-    {
-    case 0:
-    case 1:
-        tmod_offset = 8;
-        break;
-    case 2:
-        configASSERT(!"Spi Bus 2 Not Support!");
-        break;
-    case 3:
-    default:
-        tmod_offset = 10;
-        break;
-    }
-    set_bit(&spi_handle->ctrlr0, 3 << tmod_offset, tmod << tmod_offset);
-}
-
-static void hard_spi_transfer_data_standard(spi_device_num_t spi_num, spi_chip_select_t chip_select, const uint8_t *tx_buff, size_t tx_len, uint8_t *rx_buff, size_t rx_len)
-{
-    configASSERT(spi_num < SPI_DEVICE_MAX && spi_num != 2);
-    configASSERT(tx_len > 0);
-    size_t index, fifo_len;
-    // size_t rx_len = tx_len;
-    // size_t tx_len = rx_len;
-    hard_spi_set_tmod(spi_num, SPI_TMOD_TRANS_RECV);
-
-    volatile spi_t *spi_handle = spi[spi_num];
-
-    uint8_t dfs_offset;
-    switch (spi_num)
-    {
-    case 0:
-    case 1:
-        dfs_offset = 16;
-        break;
-    case 2:
-        configASSERT(!"Spi Bus 2 Not Support!");
-        break;
-    case 3:
-    default:
-        dfs_offset = 0;
-        break;
-    }
-    uint32_t data_bit_length = (spi_handle->ctrlr0 >> dfs_offset) & 0x1F;
-    spi_transfer_width_t frame_width = sipeed_spi_get_frame_size(data_bit_length);
-    spi_handle->ctrlr1 = (uint32_t)(tx_len / frame_width - 1);
-    spi_handle->ssienr = 0x01;
-    spi_handle->ser = 1U << chip_select;
-    uint32_t i = 0;
-    while (tx_len)
-    {
-        fifo_len = 32 - spi_handle->txflr;
-        fifo_len = fifo_len < tx_len ? fifo_len : tx_len;
-        switch (frame_width)
-        {
-        case SPI_TRANS_INT:
-            fifo_len = fifo_len / 4 * 4;
-            for (index = 0; index < fifo_len / 4; index++)
-                spi_handle->dr[0] = ((uint32_t *)tx_buff)[i++];
-            break;
-        case SPI_TRANS_SHORT:
-            fifo_len = fifo_len / 2 * 2;
-            for (index = 0; index < fifo_len / 2; index++)
-                spi_handle->dr[0] = ((uint16_t *)tx_buff)[i++];
-            break;
-        default:
-            for (index = 0; index < fifo_len; index++)
-                spi_handle->dr[0] = tx_buff[i++];
-            break;
-        }
-        tx_len -= fifo_len;
-    }
-
-    while ((spi_handle->sr & 0x05) != 0x04)
-        ;
-    i = 0;
-    while (rx_len)
-    {
-        fifo_len = spi_handle->rxflr;
-        fifo_len = fifo_len < rx_len ? fifo_len : rx_len;
-        switch (frame_width)
-        {
-        case SPI_TRANS_INT:
-            fifo_len = fifo_len / 4 * 4;
-            for (index = 0; index < fifo_len / 4; index++)
-                ((uint32_t *)rx_buff)[i++] = spi_handle->dr[0];
-            break;
-        case SPI_TRANS_SHORT:
-            fifo_len = fifo_len / 2 * 2;
-            for (index = 0; index < fifo_len / 2; index++)
-                ((uint16_t *)rx_buff)[i++] = (uint16_t)spi_handle->dr[0];
-            break;
-        default:
-            for (index = 0; index < fifo_len; index++)
-                rx_buff[i++] = (uint8_t)spi_handle->dr[0];
-            break;
-        }
-
-        rx_len -= fifo_len;
-    }
-    spi_handle->ser = 0x00;
-    spi_handle->ssienr = 0x00;
-}
-
 /* SPI端口初始化 */
 // void soft_spi_init(void)
 void hard_spi_config_io()
@@ -333,7 +217,7 @@ uint8_t hard_spi_rw(uint8_t data)
 {
     uint8_t c;
     spi_init(_spi_num, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
-    hard_spi_transfer_data_standard(_spi_num, _chip_select, &data, 1, &c, 1);
+    sipeed_spi_transfer_data_standard(_spi_num, _chip_select, &data, &c, 1);
     return c;
 }
 
@@ -387,7 +271,7 @@ void hard_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len)
     //send and recv
     if (send && recv)
     {
-        hard_spi_transfer_data_standard(_spi_num, _chip_select, send, len, recv, len);
+        sipeed_spi_transfer_data_standard(_spi_num, _chip_select, send, recv, len);
         return;
     }
     return;
