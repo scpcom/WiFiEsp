@@ -18,6 +18,9 @@ static uint8_t _mosi_num = -1;
 static uint8_t _miso_num = -1;
 static uint8_t _sclk_num = -1;
 
+static spi_device_num_t _spi_num;
+static spi_chip_select_t _chip_select;
+
 /* SPI端口初始化 */
 //should check io value
 void soft_spi_config_io(uint8_t mosi, uint8_t miso, uint8_t sclk)
@@ -168,6 +171,7 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     //hardware SPI
     if(_spiNum == 0)
     {
+        _spi_num = SPI_DEVICE_0;
         fpioa_set_function(sck, FUNC_SPI0_SCLK);
         /*if( ss >= 0)
         {
@@ -180,6 +184,7 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     }
     else if(_spiNum == 1)
     {
+        _spi_num = SPI_DEVICE_1;
         fpioa_set_function(sck, FUNC_SPI1_SCLK);
         /*if( ss >= 0)
         {
@@ -193,6 +198,7 @@ bool hard_spi_begin(int8_t sck, int8_t miso, int8_t mosi, int8_t ss, uint8_t _sp
     {
         return false;
     }
+    _chip_select = SPI_CHIP_SELECT_0;
     return true;
 }
 
@@ -311,21 +317,20 @@ void hard_spi_config_io()
 {
     printf("hard spi\r\n");
     //init SPI_DEVICE_1
-    // spi_init(SPI_DEVICE_1, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
-    uint32_t ret = spi_set_clk_rate(SPI_DEVICE_1, 1000000 * 9); /*set clk rate*/
+    // spi_init(_spi_num, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
+    uint32_t ret = spi_set_clk_rate(_spi_num, 1000000 * 9); /*set clk rate*/
     printf("esp32 set hard spi clk:%d\r\n", ret);
 
     // fpioa_set_function(27, FUNC_SPI1_SCLK);
     // fpioa_set_function(28, FUNC_SPI1_D0);
     // fpioa_set_function(26, FUNC_SPI1_D1);
-
 }
 
 uint8_t hard_spi_rw(uint8_t data)
 {
     uint8_t c;
-    spi_init(SPI_DEVICE_1, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
-    hard_spi_transfer_data_standard(SPI_DEVICE_1, SPI_CHIP_SELECT_0, &data, 1, &c, 1);
+    spi_init(_spi_num, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
+    hard_spi_transfer_data_standard(_spi_num, _chip_select, &data, 1, &c, 1);
     return c;
 }
 
@@ -359,27 +364,27 @@ void hard_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len)
     }
 
 #if 0
-    spi_init(SPI_DEVICE_1, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
+    spi_init(_spi_num, SPI_WORK_MODE_0, SPI_FF_STANDARD, 8, 0);
 #endif
 
     //only send
     if (send && recv == NULL)
     {
-        spi_send_data_standard(SPI_DEVICE_1, SPI_CHIP_SELECT_0, NULL, 0, send, len);
+        spi_send_data_standard(_spi_num, _chip_select, NULL, 0, send, len);
         return;
     }
 
     //only recv
     if (send == NULL && recv)
     {
-        spi_receive_data_standard(SPI_DEVICE_1, SPI_CHIP_SELECT_0, NULL, 0, recv, len);
+        spi_receive_data_standard(_spi_num, _chip_select, NULL, 0, recv, len);
         return;
     }
 
     //send and recv
     if (send && recv)
     {
-        hard_spi_transfer_data_standard(SPI_DEVICE_1, SPI_CHIP_SELECT_0, send, len, recv, len);
+        hard_spi_transfer_data_standard(_spi_num, _chip_select, send, len, recv, len);
         return;
     }
     return;
