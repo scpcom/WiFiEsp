@@ -19,8 +19,6 @@ void hard_spi_config_io();
 uint8_t hard_spi_rw(uint8_t data);
 void hard_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len);
 
-uint64_t get_millis(void);
-
 #ifdef __cplusplus
 }
 #endif

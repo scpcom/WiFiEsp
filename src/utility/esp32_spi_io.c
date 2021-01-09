@@ -1,7 +1,5 @@
 #include <stdlib.h>
 #include "esp32_spi_io.h"
-#include "sleep.h"
-#include "sysctl.h"
 
 #include <utils.h>
 #include "spi.h"
@@ -255,11 +253,4 @@ void hard_spi_rw_len(uint8_t *send, uint8_t *recv, uint32_t len)
         return;
     }
     return;
-}
-
-
-
-uint64_t get_millis(void)
-{
-    return sysctl_get_time_us() / 1000;
 }
