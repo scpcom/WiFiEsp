@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include "esp32_spi_io.h"
-#include "gpiohs.h"
 #include "sleep.h"
 #include "sysctl.h"
 
@@ -9,14 +8,9 @@
 
 #include "fpioa.h"
 
-#define GPIOHS_OUT_HIGH(io) (*(volatile uint32_t *)0x3800100CU) |= (1 << (io))
-#define GPIOHS_OUT_LOWX(io) (*(volatile uint32_t *)0x3800100CU) &= ~(1 << (io))
-
-#define GET_GPIOHS_VALX(io) (((*(volatile uint32_t *)0x38001000U) >> (io)) & 1)
-
-static uint8_t _mosi_num = -1;
-static uint8_t _miso_num = -1;
-static uint8_t _sclk_num = -1;
+static uint8_t _mosi_pin = -1;
+static uint8_t _miso_pin = -1;
+static uint8_t _sclk_pin = -1;
 
 static spi_device_num_t _spi_num;
 static spi_chip_select_t _chip_select;
@@ -31,17 +25,17 @@ extern void sipeed_spi_transfer_data_standard(spi_device_num_t spi_num, int8_t c
 void soft_spi_config_io(uint8_t mosi, uint8_t miso, uint8_t sclk)
 {
     //clk
-    gpiohs_set_drive_mode(sclk, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(sclk, GPIO_PV_LOW);
+    pinMode(sclk, OUTPUT);
+    digitalWrite(sclk, LOW);
     //mosi
-    gpiohs_set_drive_mode(mosi, GPIO_DM_OUTPUT);
-    gpiohs_set_pin(mosi, GPIO_PV_LOW);
+    pinMode(mosi, OUTPUT);
+    digitalWrite(mosi, LOW);
     //miso
-    gpiohs_set_drive_mode(miso, GPIO_DM_INPUT_PULL_UP);
+    pinMode(miso, INPUT_PULLUP);
 
-    _mosi_num = mosi;
-    _miso_num = miso;
-    _sclk_num = sclk;
+    _mosi_pin = mosi;
+    _miso_pin = miso;
+    _sclk_pin = sclk;
 }
 
 uint8_t soft_spi_rw(uint8_t data)
@@ -53,25 +47,25 @@ uint8_t soft_spi_rw(uint8_t data)
     {
         if (data & 0x80)
         {
-            GPIOHS_OUT_HIGH(_mosi_num);
+            digitalWrite(_mosi_pin, HIGH);
         }
         else
         {
-            GPIOHS_OUT_LOWX(_mosi_num);
+            digitalWrite(_mosi_pin, LOW);
         }
         data <<= 1;
-        GPIOHS_OUT_HIGH(_sclk_num);
+        digitalWrite(_sclk_pin, HIGH);
 
         asm volatile("nop");
         asm volatile("nop");
         asm volatile("nop");
 
         temp <<= 1;
-        if (GET_GPIOHS_VALX(_miso_num))
+        if (digitalRead(_miso_pin))
         {
             temp++;
         }
-        GPIOHS_OUT_LOWX(_sclk_num);
+        digitalWrite(_sclk_pin, LOW);
 
         asm volatile("nop");
         asm volatile("nop");
