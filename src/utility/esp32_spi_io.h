@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#include "wiring_digital.h"
+#include "Arduino.h"
 
 #ifdef __cplusplus
 extern "C" {

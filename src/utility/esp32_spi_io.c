@@ -1,7 +1,7 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include "esp32_spi_io.h"
 
-#include <utils.h>
 #include "spi.h"
 
 #include "fpioa.h"

@@ -1,8 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "esp32_spi.h"
 #include "esp32_spi_io.h"
-#include "printf.h"
 #include "errno.h"
 
 
