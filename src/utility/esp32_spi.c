@@ -2,8 +2,6 @@
 
 #include "esp32_spi.h"
 #include "esp32_spi_io.h"
-#include "sleep.h"
-#include "sysctl.h"
 #include "printf.h"
 #include "errno.h"
 
@@ -65,15 +63,15 @@ static void esp32_spi_reset(void)
     if ((int8_t)rst_pin > 0)
     {
         digitalWrite(rst_pin, LOW);
-        msleep(500);
+        delay(500);
         digitalWrite(rst_pin, HIGH);
-        msleep(800);
+        delay(800);
     }
     else
     {
         //soft reset
         esp32_spi_send_command(SOFT_RESET_CMD, NULL, 0);
-        msleep(1500);
+        delay(1500);
     }
 
 #if ESP32_HAVE_IO0
@@ -90,8 +88,8 @@ int8_t esp32_spi_wait_for_ready(void)
     printk("Wait for ESP32 ready\r\n");
 #endif
 
-    uint64_t tm = sysctl_get_time_us();
-    while ((sysctl_get_time_us() - tm) < 10 * 1000 * 1000) //10s
+    uint64_t tm = micros();
+    while ((micros() - tm) < 10 * 1000 * 1000) //10s
     {
         if (digitalRead(rdy_pin) == 0)
             return 0;
@@ -99,7 +97,7 @@ int8_t esp32_spi_wait_for_ready(void)
 #if (ESP32_SPI_DEBUG >= 3)
         printk(".");
 #endif
-        msleep(1); //FIXME
+        delay(1); //FIXME
     }
 
 #if (ESP32_SPI_DEBUG >= 3)
@@ -260,15 +258,15 @@ static int8_t esp32_spi_send_command(uint8_t cmd, esp32_spi_params_t *params, ui
     esp32_spi_wait_for_ready();
     digitalWrite(cs_pin, LOW);
 
-    uint64_t tm = sysctl_get_time_us();
-    while ((sysctl_get_time_us() - tm) < 1000 * 1000)
+    uint64_t tm = micros();
+    while ((micros() - tm) < 1000 * 1000)
     {
         if (digitalRead(rdy_pin))
             break;
-        msleep(1);
+        delay(1);
     }
 
-    if ((sysctl_get_time_us() - tm) > 1000 * 1000)
+    if ((micros() - tm) > 1000 * 1000)
     {
 #if (ESP32_SPI_DEBUG)
         printk("ESP32 timed out on SPI select\r\n");
@@ -357,9 +355,9 @@ void esp32_spi_read_bytes(uint8_t *buffer, uint32_t len)
 int8_t esp32_spi_wait_spi_char(uint8_t want)
 {
     uint8_t read = 0x0;
-    uint64_t tm = sysctl_get_time_us();
+    uint64_t tm = micros();
 
-    while ((sysctl_get_time_us() - tm) < 100 * 1000)
+    while ((micros() - tm) < 100 * 1000)
     {
         read = esp32_spi_read_byte();
 
@@ -375,7 +373,7 @@ int8_t esp32_spi_wait_spi_char(uint8_t want)
     }
 
 #if 0
-    if ((sysctl_get_time_us() - tm) > 100 * 1000)
+    if ((micros() - tm) > 100 * 1000)
     {
 #if ESP32_SPI_DEBUG
         printk("Timed out waiting for SPI char\r\n");
@@ -414,15 +412,15 @@ esp32_spi_params_t *esp32_spi_wait_response_cmd(uint8_t cmd, uint32_t *num_respo
 
     digitalWrite(cs_pin, LOW);
 
-    uint64_t tm = sysctl_get_time_us();
-    while ((sysctl_get_time_us() - tm) < 1000 * 1000)
+    uint64_t tm = micros();
+    while ((micros() - tm) < 1000 * 1000)
     {
         if (digitalRead(rdy_pin))
             break;
-        msleep(1);
+        delay(1);
     }
 
-    if ((sysctl_get_time_us() - tm) > 1000 * 1000)
+    if ((micros() - tm) > 1000 * 1000)
     {
 #if ESP32_SPI_DEBUG
         printk("ESP32 timed out on SPI select\r\n");
@@ -1209,7 +1207,7 @@ int8_t esp32_spi_connect_AP(uint8_t *ssid, uint8_t *password, uint8_t retry_time
             return 0;
         else if (stat == WL_CONNECT_FAILED)
             return -2;
-        sleep(1);
+        delay(1000);
     }
     stat = esp32_spi_status();
 
@@ -1879,9 +1877,9 @@ int8_t esp32_spi_socket_connect(uint8_t socket_num, uint8_t *dest, uint8_t dest_
     }
     if(conn_mod == UDP_MODE)
         return 0;
-    uint64_t tm = sysctl_get_time_us();
+    uint64_t tm = micros();
 
-    while ((sysctl_get_time_us() - tm) < 3 * 1000 * 1000) //3s
+    while ((micros() - tm) < 3 * 1000 * 1000) //3s
     {
         esp32_socket_enum_t ret = esp32_spi_socket_status(socket_num);
         if (ret == SOCKET_ESTABLISHED)
@@ -1890,7 +1888,7 @@ int8_t esp32_spi_socket_connect(uint8_t socket_num, uint8_t *dest, uint8_t dest_
         {
             return -2;
         }
-        // msleep(100);
+        // delay(100);
     }
     return -3;
 }
