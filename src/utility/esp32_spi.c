@@ -5,6 +5,9 @@
 #include "esp32_spi_io.h"
 #include "errno.h"
 
+#ifndef WIFI_IO0
+#define WIFI_IO0 -1
+#endif
 
 // Cached values of retrieved data
 char esp32_spi_ssid[32] = {0};
@@ -38,8 +41,8 @@ void esp32_spi_init(uint8_t t_cs_num, uint8_t t_rst_num, uint8_t t_rdy_num, uint
         pinMode(rst_pin, OUTPUT); //reset
     }
 
-#if ESP32_HAVE_IO0
-    gpiohs_set_drive_mode(ESP32_SPI_IO0_HS_NUM, GPIO_DM_INPUT); //gpio0
+#if WIFI_IO0 >= 0
+    pinMode(WIFI_IO0, INPUT); //gpio0
 #endif
 
     esp32_spi_reset();
@@ -52,9 +55,9 @@ static void esp32_spi_reset(void)
     printk("Reset ESP32\r\n");
 #endif
 
-#if ESP32_HAVE_IO0
-    gpiohs_set_drive_mode(ESP32_SPI_IO0_HS_NUM, GPIO_DM_OUTPUT); //gpio0
-    gpiohs_set_pin(ESP32_SPI_IO0_HS_NUM, GPIO_PV_HIGH);
+#if WIFI_IO0 >= 0
+    pinMode(WIFI_IO0, OUTPUT); //gpio0
+    digitalWrite(WIFI_IO0, HIGH);
 #endif
 
     //here we sleep 1s
@@ -74,8 +77,8 @@ static void esp32_spi_reset(void)
         delay(1500);
     }
 
-#if ESP32_HAVE_IO0
-    gpiohs_set_drive_mode(ESP32_SPI_IO0_HS_NUM, GPIO_DM_INPUT); //gpio0
+#if WIFI_IO0 >= 0
+    pinMode(WIFI_IO0, INPUT); //gpio0
 #endif
 }
 
